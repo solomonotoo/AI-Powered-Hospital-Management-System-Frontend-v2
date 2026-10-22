@@ -10,9 +10,10 @@ import { toast } from "sonner";
 import { problemOf } from "@/lib/http";
 
 // Multi-facility picker: shown when login returns several facilities
-// and no auto-selection. Names resolve in Slice 3 (facility directory
-// endpoint); until then short IDs plus position — honest about what the
-// session payload carries today (IDs only, per backend contract).
+// and no auto-selection, or none at all (staff waiting for an admin).
+// The session payload carries facility IDs only, so the UI shows short
+// IDs plus position. Facility names need either an extended session
+// contract or a facility directory endpoint; neither exists yet.
 //
 // NOTE: split from the default export so useSearchParams() (inside
 // useSelectFacility) sits under a Suspense boundary for prerendering.

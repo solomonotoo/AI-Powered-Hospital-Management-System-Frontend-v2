@@ -1,24 +1,32 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useIdleTimeout } from "@/lib/use-idle-timeout";
-import { login } from "@/features/identity/api/auth";
-import { useSession } from "@/features/identity/hooks/use-session";
+import { login, logout } from "@/features/identity/api/auth";
+import { sessionQueryKey, useSession } from "@/features/identity/hooks/use-session";
+import { setMfaToken } from "@/lib/auth-store";
 import { problemOf } from "@/lib/http";
 
 // Shared-workstation lock: after idle timeout, blur the screen behind
 // a password gate instead of logging out (wards share PCs; clinicians
-// step away mid-chart). Unlock re-authenticates silently via login —
-// success resumes exactly where they left off, failure counts toward
-// lockout like any bad password.
+// step away mid-chart). Unlock re-authenticates via login — success
+// resumes exactly where they left off, failure counts toward lockout
+// like any bad password.
 //
-// Mount inside authenticated layouts (Slice 3 shell); NOT on auth
-// pages. `timeoutMs` resolves per facility when settings land.
+// MFA accounts are NOT resumed by the password alone: they are sent to
+// the verification step and return here afterwards via returnUrl.
+//
+// Mount inside authenticated layouts (AppShell); NOT on auth pages.
 export function IdleLock({ timeoutMs }: { timeoutMs?: number }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [locked, setLocked] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,11 +40,24 @@ export function IdleLock({ timeoutMs }: { timeoutMs?: number }) {
   if (!locked) return null;
 
   const unlock = async () => {
-    if (!session) return;
+    if (!session || busy) return;
     setBusy(true);
     setError(null);
     try {
-      await login(session.username, password);
+      const result = await login(session.username, password);
+      if (result.mfaRequired) {
+        // Password accepted, but a second factor is still required.
+        // The lock screen is replaced by the MFA step; verifying takes
+        // the user back to this page.
+        setMfaToken(result.mfaToken ?? null);
+        setPassword("");
+        setLocked(false);
+        router.replace(`/mfa?returnUrl=${encodeURIComponent(pathname)}`);
+        return;
+      }
+      // A fresh login may change facility or permissions (role edits
+      // since the session started), so drop the cached session.
+      queryClient.removeQueries({ queryKey: sessionQueryKey });
       setPassword("");
       setLocked(false);
     } catch (err) {
@@ -57,7 +78,9 @@ export function IdleLock({ timeoutMs }: { timeoutMs?: number }) {
         <CardHeader>
           <CardTitle>Session locked</CardTitle>
           <CardDescription>
-            {session ? `${session.username} — enter password to resume.` : "Enter password to resume."}
+            {session
+              ? `${session.username} — enter password to resume.`
+              : "Enter password to resume."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -67,6 +90,7 @@ export function IdleLock({ timeoutMs }: { timeoutMs?: number }) {
               id="lock-password"
               type="password"
               autoComplete="current-password"
+              autoFocus
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               onKeyDown={(event) => {
@@ -77,6 +101,19 @@ export function IdleLock({ timeoutMs }: { timeoutMs?: number }) {
           </div>
           <Button onClick={unlock} disabled={busy || password.length === 0}>
             {busy ? "Unlocking…" : "Unlock"}
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onClick={() => {
+              void (async () => {
+                await logout();
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                window.location.assign("/login");
+              })();
+            }}
+          >
+            Sign out instead
           </Button>
         </CardContent>
       </Card>

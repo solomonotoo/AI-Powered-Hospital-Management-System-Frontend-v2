@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,14 +15,26 @@ import {
   type ChangePasswordFormValues,
 } from "@/features/identity/schemas/password";
 import { fieldErrorsOf } from "@/features/identity/hooks/use-auth";
-import { problemOf } from "@/lib/http";
+import {
+  bootstrapSession,
+  sessionQueryKey,
+} from "@/features/identity/hooks/use-session";
+import { clearSession, getAccessToken } from "@/lib/auth-store";
+import { problemOf, refreshAccessToken } from "@/lib/http";
 
 // Forced + voluntary password change share one form. Forced mode
 // (?forced=1, first login / expired invite) explains WHY before asking:
 // users who understand the reason don't fight the screen.
+//
+// After the change the current access token still carries the old
+// `pwd` claim (the backend cannot mutate an issued JWT), so the token
+// is rotated through /auth/refresh before routing onward. Without this
+// every subsequent request would be rejected with 403
+// PASSWORD_CHANGE_REQUIRED until the short-lived token expired.
 export function ResetPasswordForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const queryClient = useQueryClient();
   const forced = params.get("forced") === "1";
   const {
     register,
@@ -31,10 +44,20 @@ export function ResetPasswordForm() {
   } = useForm<ChangePasswordFormValues>({ resolver: zodResolver(changePasswordSchema) });
 
   const onSubmit = async (values: ChangePasswordFormValues) => {
+    // This page is public (the emailed reset link also uses it). A
+    // forced change after a reload has no access token yet, so restore
+    // one from the refresh cookie before calling an authenticated API.
+    if (!getAccessToken()) {
+      await bootstrapSession();
+      if (!getAccessToken()) {
+        toast.error("Session expired — sign in again to change your password");
+        router.replace("/login");
+        return;
+      }
+    }
+
     try {
       await changePassword(values.currentPassword, values.newPassword);
-      toast.success("Password changed — signing you in");
-      router.replace("/dashboard");
     } catch (error) {
       const problem = problemOf(error);
       const mapped = fieldErrorsOf(error);
@@ -44,7 +67,23 @@ export function ResetPasswordForm() {
       toast.error(problem.message ?? "Password change failed", {
         description: problem.traceId ? `Ref: ${problem.traceId}` : undefined,
       });
+      return;
     }
+
+    try {
+      await refreshAccessToken();
+    } catch {
+      // Password did change; only the session could not be rotated
+      // (cookie expired/revoked in the meantime). Sign in again.
+      clearSession();
+      toast.success("Password changed — please sign in again");
+      router.replace("/login");
+      return;
+    }
+
+    queryClient.removeQueries({ queryKey: sessionQueryKey });
+    toast.success("Password changed");
+    router.replace("/dashboard");
   };
 
   return (

@@ -21,7 +21,7 @@ export function useIdleTimeout(onIdle: () => void, timeoutMs: number = env.IDLE_
       clearTimeout(timer);
       timer = setTimeout(() => callback.current(), timeoutMs);
     };
-    const events = ["mousedown", "keydown", "touchstart", "scroll"] as const;
+    const events = ["mousedown", "pointermove", "keydown", "wheel", "scroll", "touchstart"] as const;
     events.forEach((event) => window.addEventListener(event, reset, { passive: true }));
     reset();
     return () => {

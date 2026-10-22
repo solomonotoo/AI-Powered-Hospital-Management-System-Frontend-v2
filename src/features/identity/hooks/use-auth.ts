@@ -2,22 +2,33 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { login, selectFacility, type LoginResponse } from "@/features/identity/api/auth";
+import {
+  login,
+  logout,
+  selectFacility,
+  type LoginResponse,
+} from "@/features/identity/api/auth";
 import { verifyMfa } from "@/features/identity/api/mfa";
 import { sessionQueryKey } from "@/features/identity/hooks/use-session";
 import { problemOf } from "@/lib/http";
 import { getMfaToken, setMfaToken } from "@/lib/auth-store";
 
+/** Only same-app absolute paths are accepted as a post-login destination. */
+function safeReturnUrl(returnUrl: string | null): string | null {
+  if (!returnUrl || !returnUrl.startsWith("/") || returnUrl.startsWith("//")) return null;
+  return returnUrl;
+}
+
 // Post-authentication routing from the RESPONSE shape — never client
 // role checks. Shared by login, MFA verify and facility select so all
-// three land identically: challenge → forced reset → picker → returnUrl.
+// three land identically: challenge → forced reset → tier → returnUrl.
 export function routeForSession(
   router: { replace: (url: string) => void },
   returnUrl: string | null,
   data: LoginResponse,
 ) {
   if (data.mfaRequired) {
-    setMfaToken(data.mfaToken);
+    setMfaToken(data.mfaToken ?? null);
     router.replace("/mfa");
     return;
   }
@@ -25,11 +36,19 @@ export function routeForSession(
     router.replace("/reset-password?forced=1");
     return;
   }
-  if (data.facilityId === null && data.facilities.length > 1) {
+  // Platform accounts have no facility context and must never land in
+  // the facility workspace (the backend enforces this too).
+  if (data.accountType === "PLATFORM") {
+    router.replace("/platform");
+    return;
+  }
+  // Staff without an active facility: picker shows the assignment (or
+  // the "contact your administrator" state when there is none).
+  if (data.facilityId === null) {
     router.replace("/select-facility");
     return;
   }
-  router.replace(returnUrl && returnUrl.startsWith("/") ? returnUrl : "/dashboard");
+  router.replace(safeReturnUrl(returnUrl) ?? "/dashboard");
 }
 
 export function useLogin() {
@@ -75,6 +94,42 @@ export function useSelectFacility() {
     onSuccess: (data) => {
       queryClient.removeQueries({ queryKey: sessionQueryKey });
       routeForSession(router, params.get("returnUrl"), data);
+    },
+  });
+}
+
+/**
+ * Facility switching from inside the authenticated shell. The access
+ * token (and therefore every facility-scoped cache entry) changes, so
+ * the cache is dropped and the shell reloads through the normal
+ * bootstrap path instead of silently serving facility A's data.
+ */
+export function useSwitchFacility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (facilityId: string) => selectFacility(facilityId),
+    onSuccess: () => {
+      queryClient.clear();
+      // A full reload guarantees no facility-A cache entry survives the
+      // token switch (and re-runs session bootstrap cleanly).
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/dashboard");
+    },
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logout,
+    // onSettled, not onSuccess: the workstation must sign out even when
+    // the server call fails (the local session is already cleared).
+    onSettled: () => {
+      queryClient.clear();
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/login");
     },
   });
 }

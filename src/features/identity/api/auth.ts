@@ -1,13 +1,18 @@
 import { api } from "@/lib/http";
-import { setSession } from "@/lib/auth-store";
+import { clearSession, setMfaToken, setSession } from "@/lib/auth-store";
 
 // Identity API: thin mappers over the backend contract. No business
 // logic here — routing decisions (MFA step? facility picker? forced
 // reset?) live in use-auth.ts from the RESPONSE shape.
 
+/**
+ * The backend omits tokens on an MFA challenge (there is no session
+ * yet), so those fields are nullable in the wire contract. Consumers
+ * must branch on `mfaRequired` before reading them.
+ */
 export interface LoginResponse {
-  accessToken: string;
-  sessionId: string;
+  accessToken?: string | null;
+  sessionId?: string | null;
   userId: string;
   username: string;
   accountType: "PLATFORM" | "STAFF";
@@ -16,7 +21,7 @@ export interface LoginResponse {
   permissions: string[];
   mustChangePassword: boolean;
   mfaRequired: boolean;
-  mfaToken: string | null;
+  mfaToken?: string | null;
 }
 
 export interface RefreshResponse {
@@ -25,9 +30,16 @@ export interface RefreshResponse {
   permissions: string[];
 }
 
+/** Store a completed authentication result (never a challenge). */
+function applySession(data: LoginResponse): void {
+  if (data.accessToken && data.sessionId) {
+    setSession(data.accessToken, data.sessionId);
+  }
+}
+
 export async function login(username: string, password: string): Promise<LoginResponse> {
   const { data } = await api.post<LoginResponse>("/api/v1/auth/login", { username, password });
-  if (!data.mfaRequired) setSession(data.accessToken, data.sessionId);
+  if (!data.mfaRequired) applySession(data);
   return data;
 }
 
@@ -37,13 +49,13 @@ export async function logout(): Promise<void> {
   } finally {
     // Client state clears even if the server call fails — a dead
     // session server-side must still log the workstation out.
-    const { clearSession } = await import("@/lib/auth-store");
     clearSession();
+    setMfaToken(null);
   }
 }
 
 export async function selectFacility(facilityId: string): Promise<LoginResponse> {
   const { data } = await api.post<LoginResponse>("/api/v1/auth/select-facility", { facilityId });
-  setSession(data.accessToken, data.sessionId);
+  applySession(data);
   return data;
 }

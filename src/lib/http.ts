@@ -6,7 +6,8 @@ import { env } from "./env";
 //
 // Auth model (matches the backend):
 // - Access token: Authorization header, from memory (auth-store).
-// - Refresh: HttpOnly cookie (withCredentials) + sessionId from memory.
+// - Refresh: HttpOnly cookie (withCredentials) + sessionId from memory
+//   (persisted as a non-secret identifier so a reload can resume).
 // - NO X-Facility-Id header (facility rides inside the JWT as `fid`).
 // - Errors are RFC 7807 problem bodies (code/message/traceId/fieldErrors).
 
@@ -31,11 +32,13 @@ export function problemOf(error: unknown): ProblemBody {
   return { message: "Unexpected error" };
 }
 
+export const PASSWORD_CHANGE_REQUIRED = "PASSWORD_CHANGE_REQUIRED";
+
 export const api = axios.create({
   baseURL: env.API_URL,
   timeout: 30_000,
   headers: { "Content-Type": "application/json" },
-  // Send the HttpOnly refresh cookie on same-origin auth calls.
+  // Send the HttpOnly refresh cookie on auth calls.
   withCredentials: true,
 });
 
@@ -53,12 +56,54 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
+// Requests where a 401 means "wrong credentials entered", NOT "the
+// session expired". Refreshing and retrying these would either repeat
+// the same failure or (worse) log the user out for a typo.
+const CREDENTIAL_CHECKS = [
+  "/api/v1/auth/login",
+  "/api/v1/auth/refresh",
+  "/api/v1/auth/mfa/verify",
+  "/api/v1/auth/change-password",
+  "/api/v1/auth/accept-invite",
+  "/api/v1/auth/forgot-password",
+  "/api/v1/auth/reset-password",
+];
+
+function isCredentialCheck(url: string | undefined): boolean {
+  return url !== undefined && CREDENTIAL_CHECKS.some((path) => url.includes(path));
+}
+
+function redirectToLogin(): void {
+  if (typeof window === "undefined") return;
+  const { pathname, search } = window.location;
+  if (pathname === "/login" || pathname.startsWith("/login/")) return;
+  const returnUrl = encodeURIComponent(`${pathname}${search}`);
+  // Hard reload is deliberate: the in-memory token is already cleared,
+  // so client-side routing would keep rendering authed UI against a
+  // dead session. A full document load reboots to a clean state.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign(`/login?returnUrl=${returnUrl}`);
+}
+
+function redirectToForcedPasswordChange(): void {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname.startsWith("/reset-password")) return;
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign("/reset-password?forced=1");
+}
+
 // Single-flight refresh: concurrent 401s share ONE refresh call, then
 // all retry. Refresh failure (rotated-away, revoked, expired) clears
 // the session and sends the user to login with a return URL.
 let refreshPromise: Promise<string> | null = null;
 
-async function refreshAccessToken(): Promise<string> {
+/**
+ * Exchange the HttpOnly refresh cookie for a new access token.
+ * Also used by session bootstrap on reload and after a forced password
+ * change (the old token still carries the stale `pwd` claim).
+ * Rejects when there is no session id or the server refuses the cookie.
+ */
+export function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       const sessionId = getSessionId();
@@ -80,16 +125,37 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
-    if (!originalRequest || originalRequest._retry) {
-      if (error.response?.status === 401) clearSession();
+    if (!originalRequest) return Promise.reject(error);
+
+    const status = error.response?.status;
+    const problem = problemOf(error);
+
+    // Forced password change is a 403 with a stable code — the session
+    // is alive, it just may not use other resources yet.
+    if (status === 403 && problem.code === PASSWORD_CHANGE_REQUIRED) {
+      redirectToForcedPasswordChange();
       return Promise.reject(error);
     }
-    if (error.response?.status !== 401) return Promise.reject(error);
-    // Never refresh the refresh/login calls themselves.
-    if (originalRequest.url?.includes("/api/v1/auth/")) {
+
+    if (status !== 401) return Promise.reject(error);
+
+    // Credential checks: surface the error, keep the current session.
+    if (isCredentialCheck(originalRequest.url)) return Promise.reject(error);
+
+    if (originalRequest._retry) {
+      // A freshly refreshed token was rejected too: the session is dead.
       clearSession();
+      redirectToLogin();
       return Promise.reject(error);
     }
+
+    // No session id means there is nothing to refresh with.
+    if (!getSessionId()) {
+      clearSession();
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
     originalRequest._retry = true;
     try {
       const token = await refreshAccessToken();
@@ -97,15 +163,7 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       clearSession();
-      const returnUrl =
-        typeof window !== "undefined" ? window.location.pathname : "/login";
-      if (typeof window !== "undefined" && !returnUrl.startsWith("/login")) {
-        // Hard reload is deliberate here: the in-memory token is already
-        // cleared, so client-side routing would keep rendering authed UI
-        // against a dead session. Full reload reboots to a clean state.
-        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
-      }
+      redirectToLogin();
       return Promise.reject(refreshError);
     }
   },

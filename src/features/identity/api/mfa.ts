@@ -1,7 +1,6 @@
 import { api } from "@/lib/http";
-import { setMfaToken } from "@/lib/auth-store";
+import { setMfaToken, setSession } from "@/lib/auth-store";
 import type { LoginResponse } from "@/features/identity/api/auth";
-import { setSession } from "@/lib/auth-store";
 
 // MFA API: enrol shows the secret once, confirm latches it on,
 // verify exchanges the 5-minute challenge for a full session.
@@ -29,7 +28,9 @@ export async function confirmMfa(code: string): Promise<{ recoveryCodes: string[
 // --- Verify (public challenge) ----------------------------------------
 export async function verifyMfa(mfaToken: string, code: string): Promise<LoginResponse> {
   const { data } = await api.post<LoginResponse>("/api/v1/auth/mfa/verify", { mfaToken, code });
-  setSession(data.accessToken, data.sessionId);
+  if (data.accessToken && data.sessionId) {
+    setSession(data.accessToken, data.sessionId);
+  }
   setMfaToken(null);
   return data;
 }

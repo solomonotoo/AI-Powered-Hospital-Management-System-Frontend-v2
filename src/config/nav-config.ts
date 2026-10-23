@@ -1,8 +1,10 @@
 import {
   Building2,
   ClipboardCheck,
+  Hash,
   LayoutDashboard,
   Network,
+  Printer,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -52,6 +54,18 @@ export const facilityNav: NavSection[] = [
         url: "/admin/units",
         icon: Network,
         permissions: ["FACILITY_UNIT_MANAGE"],
+      },
+      {
+        title: "Number sequences",
+        url: "/admin/setup/sequences",
+        icon: Hash,
+        permissions: ["CONFIG_READ"],
+      },
+      {
+        title: "Print profile",
+        url: "/admin/setup/print-profile",
+        icon: Printer,
+        permissions: ["CONFIG_READ"],
       },
     ],
   },

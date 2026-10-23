@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, ClipboardCheck, LayoutDashboard, Network } from "lucide-react";
+import {
+  Building2,
+  ClipboardCheck,
+  Hash,
+  LayoutDashboard,
+  Network,
+  Printer,
+} from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { PermissionDenied } from "@/components/shared/permission-denied";
 import { Button } from "@/components/ui/button";
@@ -55,6 +62,7 @@ export default function FacilitySetupPage() {
 
   const canUpdate = session.permissions.includes("FACILITY_UPDATE");
   const canManageUnits = session.permissions.includes("FACILITY_UNIT_MANAGE");
+  const canReadConfig = session.permissions.includes("CONFIG_READ");
   if (!canUpdate) {
     return (
       <PermissionDenied
@@ -94,8 +102,8 @@ export default function FacilitySetupPage() {
           <CardHeader>
             <CardTitle>Setup screens</CardTitle>
             <CardDescription>
-              Keep the registry and organizational structure current while you work
-              through readiness.
+              Keep the registry, organizational structure, number formats and print
+              identity current while you work through readiness.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -114,10 +122,26 @@ export default function FacilitySetupPage() {
                   </Link>
                 </Button>
               )}
+              {canReadConfig && (
+                <>
+                  <Button asChild variant="outline">
+                    <Link href="/admin/setup/sequences">
+                      <Hash aria-hidden="true" />
+                      Number sequences
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/admin/setup/print-profile">
+                      <Printer aria-hidden="true" />
+                      Print profile
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Sequence and print-profile setup screens are still pending; their
-              readiness checks remain server-evaluated.
+              Number sequences and the print profile are required readiness items. Each
+              editor still checks its own write permission.
             </p>
           </CardContent>
         </Card>

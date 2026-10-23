@@ -1,4 +1,9 @@
-import { LayoutDashboard, ShieldCheck, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  LayoutDashboard,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 
 // Navigation catalogue for the authenticated facility shell.
 //
@@ -28,5 +33,24 @@ export const facilityNav: NavSection[] = [
   {
     label: "Account",
     items: [{ title: "Security", url: "/account/security", icon: ShieldCheck }],
+  },
+];
+
+// Platform tier navigation. Only registry/administrative routes belong
+// here: a platform account must never see clinical or billing entries.
+export const platformNav: NavSection[] = [
+  {
+    items: [{ title: "Overview", url: "/platform", icon: LayoutDashboard }],
+  },
+  {
+    label: "Administration",
+    items: [
+      {
+        title: "Facilities",
+        url: "/platform/facilities",
+        icon: Building2,
+        permissions: ["FACILITY_LIST_ALL"],
+      },
+    ],
   },
 ];

@@ -32,6 +32,19 @@ export function problemOf(error: unknown): ProblemBody {
   return { message: "Unexpected error" };
 }
 
+/**
+ * Map problem+json `fieldErrors[]` onto form field names. Shared by
+ * every feature form; unknown fields collapse into the caller's toast.
+ */
+export function fieldErrorsOf(error: unknown): Record<string, string> {
+  const problem = problemOf(error);
+  const mapped: Record<string, string> = {};
+  for (const fieldError of problem.fieldErrors ?? []) {
+    if (fieldError.field) mapped[fieldError.field] = fieldError.message ?? "Invalid value";
+  }
+  return mapped;
+}
+
 export const PASSWORD_CHANGE_REQUIRED = "PASSWORD_CHANGE_REQUIRED";
 
 export const api = axios.create({

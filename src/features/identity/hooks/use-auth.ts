@@ -10,7 +10,6 @@ import {
 } from "@/features/identity/api/auth";
 import { verifyMfa } from "@/features/identity/api/mfa";
 import { sessionQueryKey } from "@/features/identity/hooks/use-session";
-import { problemOf } from "@/lib/http";
 import { getMfaToken, setMfaToken } from "@/lib/auth-store";
 
 /** Only same-app absolute paths are accepted as a post-login destination. */
@@ -134,13 +133,7 @@ export function useLogout() {
   });
 }
 
-// Server field errors (problem+json fieldErrors[]) map onto RHF fields
-// by name; unknown fields collapse into the form error toast.
-export function fieldErrorsOf(error: unknown): Record<string, string> {
-  const problem = problemOf(error);
-  const mapped: Record<string, string> = {};
-  for (const fieldError of problem.fieldErrors ?? []) {
-    if (fieldError.field) mapped[fieldError.field] = fieldError.message ?? "Invalid value";
-  }
-  return mapped;
-}
+// Server field errors live with the shared HTTP problem helpers so
+// feature modules do not depend on the auth hook module. Re-exported
+// here for the existing auth screens.
+export { fieldErrorsOf } from "@/lib/http";

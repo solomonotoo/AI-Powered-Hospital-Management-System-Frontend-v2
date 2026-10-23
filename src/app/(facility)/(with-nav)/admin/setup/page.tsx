@@ -54,6 +54,7 @@ export default function FacilitySetupPage() {
   }
 
   const canUpdate = session.permissions.includes("FACILITY_UPDATE");
+  const canManageUnits = session.permissions.includes("FACILITY_UNIT_MANAGE");
   if (!canUpdate) {
     return (
       <PermissionDenied
@@ -105,12 +106,14 @@ export default function FacilitySetupPage() {
                   Facility profile
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link href="/admin/units">
-                  <Network aria-hidden="true" />
-                  Organization units
-                </Link>
-              </Button>
+              {canManageUnits && (
+                <Button asChild variant="outline">
+                  <Link href="/admin/units">
+                    <Network aria-hidden="true" />
+                    Organization units
+                  </Link>
+                </Button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               Sequence and print-profile setup screens are still pending; their

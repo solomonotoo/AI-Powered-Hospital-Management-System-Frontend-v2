@@ -6,6 +6,7 @@ import {
   getCurrentFacilityReadiness,
   getFacility,
   getFacilityReadiness,
+  getFacilityStatusHistory,
   listFacilities,
   registerFacility,
   requestGoLive,
@@ -23,6 +24,8 @@ export const facilityQueryKeys = {
   detail: (facilityId: string) => [...facilityQueryKeys.all, "detail", facilityId] as const,
   readiness: (facilityId: string) =>
     [...facilityQueryKeys.all, "readiness", facilityId] as const,
+  statusHistory: (facilityId: string) =>
+    [...facilityQueryKeys.all, "status-history", facilityId] as const,
   current: () => [...facilityQueryKeys.all, "current"] as const,
   currentReadiness: () =>
     [...facilityQueryKeys.all, "current", "readiness"] as const,
@@ -52,6 +55,15 @@ export function useFacilityReadiness(facilityId: string, enabled = true) {
     queryFn: () => getFacilityReadiness(facilityId),
     enabled: enabled && facilityId.length > 0,
     staleTime: 15_000,
+  });
+}
+
+export function useFacilityStatusHistory(facilityId: string, enabled = true) {
+  return useQuery({
+    queryKey: facilityQueryKeys.statusHistory(facilityId),
+    queryFn: () => getFacilityStatusHistory(facilityId),
+    enabled: enabled && facilityId.length > 0,
+    staleTime: 30_000,
   });
 }
 

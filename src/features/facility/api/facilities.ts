@@ -1,5 +1,10 @@
 import { api } from "@/lib/http";
-import type { FacilityView, ReadinessItem, RegisterFacilityInput } from "../types";
+import type {
+  FacilityView,
+  ReadinessItem,
+  RegisterFacilityInput,
+  StatusHistoryEntry,
+} from "../types";
 
 // Platform facility registry API (blueprint 8.6). Every call is
 // authorized again by the backend; the platform principal is derived
@@ -18,6 +23,15 @@ export async function getFacility(facilityId: string): Promise<FacilityView> {
 export async function getFacilityReadiness(facilityId: string): Promise<ReadinessItem[]> {
   const { data } = await api.get<ReadinessItem[]>(
     `/api/v1/facilities/${facilityId}/readiness`,
+  );
+  return data;
+}
+
+export async function getFacilityStatusHistory(
+  facilityId: string,
+): Promise<StatusHistoryEntry[]> {
+  const { data } = await api.get<StatusHistoryEntry[]>(
+    `/api/v1/facilities/${facilityId}/status-history`,
   );
   return data;
 }

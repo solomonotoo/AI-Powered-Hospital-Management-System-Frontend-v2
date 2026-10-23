@@ -104,3 +104,16 @@ export interface ReadinessItem {
   passed: boolean;
   detail: string;
 }
+
+/**
+ * One append-only facility status transition
+ * (GET /api/v1/facilities/{id}/status-history, platform read).
+ */
+export interface StatusHistoryEntry {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  changedBy: string | null;
+  reason: string | null;
+  changedAt: string;
+}

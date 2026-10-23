@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Building2, ClipboardCheck, Users } from "lucide-react";
+import { ArrowLeft, Building2, ClipboardCheck, History, Users } from "lucide-react";
 import { useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { PermissionDenied } from "@/components/shared/permission-denied";
@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FacilityStatusBadge } from "@/features/facility/components/facility-status-badge";
 import { FirstAdminInvite } from "@/features/facility/components/first-admin-invite";
 import { ReadinessChecklist } from "@/features/facility/components/readiness-checklist";
+import { StatusHistory } from "@/features/facility/components/status-history";
 import {
   useFacility,
   useFacilityReadiness,
@@ -187,6 +188,10 @@ export default function FacilityDetailPage() {
             <Users aria-hidden="true" />
             Admin users
           </TabsTrigger>
+          <TabsTrigger value="history">
+            <History aria-hidden="true" />
+            Status history
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -215,8 +220,8 @@ export default function FacilityDetailPage() {
                 <Fact label="Licence number" value={facility.licenceNumber} />
               </dl>
               <p className="mt-4 text-xs text-muted-foreground">
-                Ownership, address, contacts, created date and status history are not
-                available in this console yet.
+                Ownership, address, contacts and created date are not available in this
+                console yet.
               </p>
             </CardContent>
           </Card>
@@ -290,6 +295,10 @@ export default function FacilityDetailPage() {
             Existing administrators are not listed here yet: the platform tier does not
             hold the identity user-read permission.
           </p>
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-4">
+          <StatusHistory facilityId={facility.id} />
         </TabsContent>
       </Tabs>
     </>

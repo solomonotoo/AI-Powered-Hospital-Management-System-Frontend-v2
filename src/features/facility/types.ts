@@ -76,6 +76,15 @@ export interface FacilityView {
   status: FacilityStatus;
   timezone: string | null;
   licenceNumber: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  addressCity: string | null;
+  addressCountry: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  licenceBody: string | null;
+  nhiaAccreditationCode: string | null;
+  ownership: FacilityOwnership;
 }
 
 /** POST /api/v1/facilities (platform registration). */
@@ -96,6 +105,57 @@ export interface RegisterFacilityInput {
   nhiaAccreditationCode: string | null;
   ownership: FacilityOwnership;
   timezone: string;
+}
+
+/** PUT /api/v1/facilities/current (code and status are not editable). */
+export type UpdateFacilityInput = Omit<RegisterFacilityInput, "code">;
+
+/** OrganizationUnit kinds (blueprint 8.6). */
+export const UNIT_TYPES = [
+  "DEPARTMENT",
+  "CLINIC",
+  "WARD",
+  "LAB",
+  "PHARMACY",
+  "STORE",
+  "CASHIER_POINT",
+  "OTHER",
+] as const;
+
+export type UnitType = (typeof UNIT_TYPES)[number];
+
+export const UNIT_TYPE_LABELS: Record<UnitType, string> = {
+  DEPARTMENT: "Department",
+  CLINIC: "Clinic",
+  WARD: "Ward",
+  LAB: "Laboratory",
+  PHARMACY: "Pharmacy",
+  STORE: "Store",
+  CASHIER_POINT: "Cashier point",
+  OTHER: "Other",
+};
+
+export const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((value) => ({
+  value,
+  label: UNIT_TYPE_LABELS[value],
+}));
+
+/** GET /api/v1/facilities/current/units. */
+export interface UnitView {
+  id: string;
+  code: string;
+  name: string;
+  type: UnitType;
+  parentUnitId: string | null;
+  active: boolean;
+}
+
+/** Create/rename body for a facility unit. */
+export interface UnitInput {
+  code: string;
+  name: string;
+  type: UnitType;
+  parentUnitId: string | null;
 }
 
 /** One line of the go-live readiness checklist (verbatim from the server). */

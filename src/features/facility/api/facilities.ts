@@ -4,6 +4,9 @@ import type {
   ReadinessItem,
   RegisterFacilityInput,
   StatusHistoryEntry,
+  UnitInput,
+  UnitView,
+  UpdateFacilityInput,
 } from "../types";
 
 // Platform facility registry API (blueprint 8.6). Every call is
@@ -50,6 +53,44 @@ export async function getCurrentFacilityReadiness(): Promise<ReadinessItem[]> {
     "/api/v1/facilities/current/readiness",
   );
   return data;
+}
+
+export async function updateCurrentFacility(
+  input: UpdateFacilityInput,
+): Promise<void> {
+  await api.put("/api/v1/facilities/current", input);
+}
+
+export async function getCurrentFacilityUnits(): Promise<UnitView[]> {
+  const { data } = await api.get<UnitView[]>("/api/v1/facilities/current/units");
+  // The backend omits null parent ids from JSON; normalise once at the
+  // boundary so the tree and the form can rely on the declared type.
+  return data.map((unit) => ({ ...unit, parentUnitId: unit.parentUnitId ?? null }));
+}
+
+export async function createUnit(input: UnitInput): Promise<string> {
+  const { data } = await api.post<{ unitId: string }>(
+    "/api/v1/facilities/current/units",
+    input,
+  );
+  return data.unitId;
+}
+
+export async function updateUnit(unitId: string, input: UnitInput): Promise<void> {
+  await api.put(`/api/v1/facilities/current/units/${unitId}`, input);
+}
+
+export async function deactivateUnit(
+  unitId: string,
+  reason: string,
+): Promise<void> {
+  await api.post(`/api/v1/facilities/current/units/${unitId}/deactivate`, {
+    reason,
+  });
+}
+
+export async function applyUnitTemplate(): Promise<void> {
+  await api.post("/api/v1/facilities/current/units/apply-template");
 }
 
 /**

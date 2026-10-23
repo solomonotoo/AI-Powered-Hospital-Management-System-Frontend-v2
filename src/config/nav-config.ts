@@ -2,6 +2,7 @@ import {
   Building2,
   ClipboardCheck,
   LayoutDashboard,
+  Network,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -39,6 +40,18 @@ export const facilityNav: NavSection[] = [
         url: "/admin/setup",
         icon: ClipboardCheck,
         permissions: ["FACILITY_UPDATE"],
+      },
+      {
+        title: "Facility profile",
+        url: "/admin/facility",
+        icon: Building2,
+        permissions: ["FACILITY_UPDATE"],
+      },
+      {
+        title: "Organization units",
+        url: "/admin/units",
+        icon: Network,
+        permissions: ["FACILITY_UNIT_MANAGE"],
       },
     ],
   },

@@ -2,17 +2,27 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  applyUnitTemplate,
+  createUnit,
+  deactivateUnit,
   getCurrentFacility,
   getCurrentFacilityReadiness,
+  getCurrentFacilityUnits,
   getFacility,
   getFacilityReadiness,
   getFacilityStatusHistory,
   listFacilities,
   registerFacility,
   requestGoLive,
+  updateCurrentFacility,
+  updateUnit,
 } from "../api/facilities";
 import { inviteFirstFacilityAdmin } from "@/features/identity/api/invite";
-import type { RegisterFacilityInput } from "../types";
+import type {
+  RegisterFacilityInput,
+  UnitInput,
+  UpdateFacilityInput,
+} from "../types";
 
 // Query-key factory (blueprint 52): mutations invalidate the narrowest
 // key that can be stale. Facility metadata is not patient data, but a
@@ -29,6 +39,7 @@ export const facilityQueryKeys = {
   current: () => [...facilityQueryKeys.all, "current"] as const,
   currentReadiness: () =>
     [...facilityQueryKeys.all, "current", "readiness"] as const,
+  currentUnits: () => [...facilityQueryKeys.all, "current", "units"] as const,
 };
 
 export function useFacilities(enabled = true) {
@@ -82,6 +93,92 @@ export function useCurrentFacilityReadiness(enabled = true) {
     queryFn: getCurrentFacilityReadiness,
     enabled,
     staleTime: 15_000,
+  });
+}
+
+export function useCurrentFacilityUnits(enabled = true) {
+  return useQuery({
+    queryKey: facilityQueryKeys.currentUnits(),
+    queryFn: getCurrentFacilityUnits,
+    enabled,
+    staleTime: 15_000,
+  });
+}
+
+export function useUpdateCurrentFacility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UpdateFacilityInput) => updateCurrentFacility(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: facilityQueryKeys.current() });
+    },
+  });
+}
+
+export function useCreateUnit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UnitInput) => createUnit(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentUnits(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentReadiness(),
+      });
+    },
+  });
+}
+
+export function useUpdateUnit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ unitId, input }: { unitId: string; input: UnitInput }) =>
+      updateUnit(unitId, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentUnits(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentReadiness(),
+      });
+    },
+  });
+}
+
+export function useDeactivateUnit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ unitId, reason }: { unitId: string; reason: string }) =>
+      deactivateUnit(unitId, reason),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentUnits(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentReadiness(),
+      });
+    },
+  });
+}
+
+export function useApplyUnitTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: applyUnitTemplate,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentUnits(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentReadiness(),
+      });
+    },
   });
 }
 

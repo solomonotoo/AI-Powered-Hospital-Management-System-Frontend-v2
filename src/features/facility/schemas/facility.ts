@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { FACILITY_OWNERSHIPS, FACILITY_TYPES, type RegisterFacilityInput } from "../types";
+import {
+  FACILITY_OWNERSHIPS,
+  FACILITY_TYPES,
+  type FacilityView,
+  type RegisterFacilityInput,
+  type UpdateFacilityInput,
+} from "../types";
 
 // Registration wizard schema (blueprint 8.6 facilitySchema).
 //
@@ -62,6 +68,38 @@ export const facilitySchema = z.object({
 
 export type FacilityFormValues = z.infer<typeof facilitySchema>;
 
+/**
+ * Profile edit: the same rules as registration, minus the immutable
+ * facility code (owned by the platform registry, never edited here).
+ */
+export const facilityProfileSchema = facilitySchema.omit({ code: true });
+
+export type FacilityProfileFormValues = z.infer<typeof facilityProfileSchema>;
+
+export const FACILITY_PROFILE_FORM_FIELDS = [
+  "name",
+  "type",
+  "ownership",
+  "timezone",
+  "region",
+  "district",
+  "addressLine1",
+  "addressLine2",
+  "addressCity",
+  "addressCountry",
+  "contactPhone",
+  "contactEmail",
+  "licenceNumber",
+  "licenceBody",
+  "nhiaAccreditationCode",
+] as const satisfies readonly (keyof FacilityProfileFormValues)[];
+
+export function isFacilityProfileFormField(
+  field: string,
+): field is keyof FacilityProfileFormValues {
+  return (FACILITY_PROFILE_FORM_FIELDS as readonly string[]).includes(field);
+}
+
 export const FACILITY_FORM_FIELDS = [
   "code",
   "name",
@@ -109,5 +147,51 @@ export function toRegisterFacilityInput(values: FacilityFormValues): RegisterFac
     nhiaAccreditationCode: nullIfBlank(values.nhiaAccreditationCode),
     ownership: values.ownership,
     timezone: values.timezone,
+  };
+}
+
+/** Map profile-edit values onto the PUT /facilities/current body. */
+export function toUpdateFacilityInput(
+  values: FacilityProfileFormValues,
+): UpdateFacilityInput {
+  return {
+    name: values.name,
+    type: values.type,
+    region: nullIfBlank(values.region),
+    district: nullIfBlank(values.district),
+    addressLine1: values.addressLine1,
+    addressLine2: nullIfBlank(values.addressLine2),
+    addressCity: values.addressCity,
+    addressCountry: values.addressCountry,
+    contactPhone: nullIfBlank(values.contactPhone),
+    contactEmail: nullIfBlank(values.contactEmail),
+    licenceNumber: nullIfBlank(values.licenceNumber),
+    licenceBody: nullIfBlank(values.licenceBody),
+    nhiaAccreditationCode: nullIfBlank(values.nhiaAccreditationCode),
+    ownership: values.ownership,
+    timezone: values.timezone,
+  };
+}
+
+/** Prefill the editor from the server view (nulls become empty inputs). */
+export function facilityToProfileFormValues(
+  facility: FacilityView,
+): FacilityProfileFormValues {
+  return {
+    name: facility.name,
+    type: facility.type,
+    ownership: facility.ownership,
+    timezone: facility.timezone ?? "Africa/Accra",
+    region: facility.region ?? "",
+    district: facility.district ?? "",
+    addressLine1: facility.addressLine1 ?? "",
+    addressLine2: facility.addressLine2 ?? "",
+    addressCity: facility.addressCity ?? "",
+    addressCountry: facility.addressCountry ?? "Ghana",
+    contactPhone: facility.contactPhone ?? "",
+    contactEmail: facility.contactEmail ?? "",
+    licenceNumber: facility.licenceNumber ?? "",
+    licenceBody: facility.licenceBody ?? "",
+    nhiaAccreditationCode: facility.nhiaAccreditationCode ?? "",
   };
 }

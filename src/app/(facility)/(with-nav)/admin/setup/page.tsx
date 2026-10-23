@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardCheck, LayoutDashboard } from "lucide-react";
+import { Building2, ClipboardCheck, LayoutDashboard, Network } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { PermissionDenied } from "@/components/shared/permission-denied";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,36 @@ export default function FacilitySetupPage() {
 
       <div className="space-y-4">
         <GoLivePanel />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Setup screens</CardTitle>
+            <CardDescription>
+              Keep the registry and organizational structure current while you work
+              through readiness.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link href="/admin/facility">
+                  <Building2 aria-hidden="true" />
+                  Facility profile
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/admin/units">
+                  <Network aria-hidden="true" />
+                  Organization units
+                </Link>
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Sequence and print-profile setup screens are still pending; their
+              readiness checks remain server-evaluated.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

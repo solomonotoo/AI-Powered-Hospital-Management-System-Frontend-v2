@@ -26,6 +26,7 @@ import {
   useFacilityReadiness,
 } from "@/features/facility/hooks/use-facilities";
 import {
+  FACILITY_OWNERSHIP_LABELS,
   FACILITY_STATUS_LABELS,
   FACILITY_TYPE_LABELS,
 } from "@/features/facility/types";
@@ -156,6 +157,14 @@ export default function FacilityDetailPage() {
   }
 
   const facility = facilityQuery.data;
+  const address = [
+    facility.addressLine1,
+    facility.addressLine2,
+    facility.addressCity,
+    facility.addressCountry,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(", ");
 
   return (
     <>
@@ -216,12 +225,26 @@ export default function FacilityDetailPage() {
                 />
                 <Fact label="Region" value={facility.region} />
                 <Fact label="District" value={facility.district} />
+                <Fact
+                  label="Ownership"
+                  value={
+                    FACILITY_OWNERSHIP_LABELS[facility.ownership] ??
+                    facility.ownership
+                  }
+                />
                 <Fact label="Timezone" value={facility.timezone} />
+                <Fact label="Address" value={address} />
+                <Fact label="Contact phone" value={facility.contactPhone} />
+                <Fact label="Contact email" value={facility.contactEmail} />
                 <Fact label="Licence number" value={facility.licenceNumber} />
+                <Fact label="Licence body" value={facility.licenceBody} />
+                <Fact
+                  label="NHIA accreditation"
+                  value={facility.nhiaAccreditationCode}
+                />
               </dl>
               <p className="mt-4 text-xs text-muted-foreground">
-                Ownership, address, contacts and created date are not available in this
-                console yet.
+                Creation date is not available in this console yet.
               </p>
             </CardContent>
           </Card>

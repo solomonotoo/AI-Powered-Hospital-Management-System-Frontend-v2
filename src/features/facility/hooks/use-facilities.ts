@@ -18,6 +18,7 @@ import {
   updateUnit,
 } from "../api/facilities";
 import { inviteFirstFacilityAdmin } from "@/features/identity/api/invite";
+import { facilityAdminUserQueryKeys } from "@/features/identity/hooks/use-facility-admin-users";
 import type {
   RegisterFacilityInput,
   UnitInput,
@@ -225,6 +226,9 @@ export function useInviteFirstFacilityAdmin(facilityId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: facilityQueryKeys.readiness(facilityId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: facilityAdminUserQueryKeys.list(facilityId),
       });
     },
   });

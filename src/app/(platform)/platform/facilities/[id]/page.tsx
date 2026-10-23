@@ -21,6 +21,7 @@ import { FacilityStatusBadge } from "@/features/facility/components/facility-sta
 import { FirstAdminInvite } from "@/features/facility/components/first-admin-invite";
 import { ReadinessChecklist } from "@/features/facility/components/readiness-checklist";
 import { StatusHistory } from "@/features/facility/components/status-history";
+import { FacilityAdminUsers } from "@/features/identity/components/facility-admin-users";
 import {
   useFacility,
   useFacilityReadiness,
@@ -301,6 +302,7 @@ export default function FacilityDetailPage() {
         </TabsContent>
 
         <TabsContent value="admin" className="mt-4 space-y-4">
+          <FacilityAdminUsers facilityId={facility.id} />
           {!canInvite ? (
             <Alert>
               <AlertTitle>Invitation permission required</AlertTitle>
@@ -314,10 +316,6 @@ export default function FacilityDetailPage() {
               facilityName={facility.name}
             />
           )}
-          <p className="text-xs text-muted-foreground">
-            Existing administrators are not listed here yet: the platform tier does not
-            hold the identity user-read permission.
-          </p>
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">

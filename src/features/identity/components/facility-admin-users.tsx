@@ -159,7 +159,9 @@ export function FacilityAdminUsers({ facilityId }: { facilityId: string }) {
               </TableHeader>
               <TableBody>
                 {admins.map((admin) => (
-                  <TableRow key={`${admin.userId}:${admin.roleCode}`}>
+                  <TableRow
+                    key={`${admin.userId}:${admin.roleCode}:${admin.assignmentStatus}:${admin.validFrom}`}
+                  >
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium">{admin.username}</span>

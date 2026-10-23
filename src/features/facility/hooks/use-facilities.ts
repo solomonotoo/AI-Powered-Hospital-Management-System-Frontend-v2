@@ -2,10 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  getCurrentFacility,
+  getCurrentFacilityReadiness,
   getFacility,
   getFacilityReadiness,
   listFacilities,
   registerFacility,
+  requestGoLive,
 } from "../api/facilities";
 import { inviteFirstFacilityAdmin } from "@/features/identity/api/invite";
 import type { RegisterFacilityInput } from "../types";
@@ -20,6 +23,9 @@ export const facilityQueryKeys = {
   detail: (facilityId: string) => [...facilityQueryKeys.all, "detail", facilityId] as const,
   readiness: (facilityId: string) =>
     [...facilityQueryKeys.all, "readiness", facilityId] as const,
+  current: () => [...facilityQueryKeys.all, "current"] as const,
+  currentReadiness: () =>
+    [...facilityQueryKeys.all, "current", "readiness"] as const,
 };
 
 export function useFacilities(enabled = true) {
@@ -46,6 +52,43 @@ export function useFacilityReadiness(facilityId: string, enabled = true) {
     queryFn: () => getFacilityReadiness(facilityId),
     enabled: enabled && facilityId.length > 0,
     staleTime: 15_000,
+  });
+}
+
+export function useCurrentFacility(enabled = true) {
+  return useQuery({
+    queryKey: facilityQueryKeys.current(),
+    queryFn: getCurrentFacility,
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useCurrentFacilityReadiness(enabled = true) {
+  return useQuery({
+    queryKey: facilityQueryKeys.currentReadiness(),
+    queryFn: getCurrentFacilityReadiness,
+    enabled,
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * Taking a facility live is a one-way status change (PROVISIONING or
+ * CONFIGURED → LIVE). No optimistic update: the server re-runs the
+ * readiness checklist, and the next facility read is authoritative.
+ */
+export function useRequestGoLive() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: requestGoLive,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: facilityQueryKeys.current() });
+      void queryClient.invalidateQueries({
+        queryKey: facilityQueryKeys.currentReadiness(),
+      });
+    },
   });
 }
 

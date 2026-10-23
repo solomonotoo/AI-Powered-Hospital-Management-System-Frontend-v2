@@ -22,6 +22,30 @@ export async function getFacilityReadiness(facilityId: string): Promise<Readines
   return data;
 }
 
+// Facility-side setup API. These endpoints carry no facility id: the
+// backend reads the caller's facility from the access token (`fid`), so
+// a cross-facility call is inexpressible here.
+
+export async function getCurrentFacility(): Promise<FacilityView> {
+  const { data } = await api.get<FacilityView>("/api/v1/facilities/current");
+  return data;
+}
+
+export async function getCurrentFacilityReadiness(): Promise<ReadinessItem[]> {
+  const { data } = await api.get<ReadinessItem[]>(
+    "/api/v1/facilities/current/readiness",
+  );
+  return data;
+}
+
+/**
+ * GoLive is readiness-gated by the backend: a 422 `READINESS_FAILED`
+ * problem means the checklist changed between the read and the command.
+ */
+export async function requestGoLive(): Promise<void> {
+  await api.post("/api/v1/facilities/current/go-live");
+}
+
 /**
  * RegisterFacility returns the new aggregate id under `facilityId`.
  * The facility starts in PROVISIONING; its first administrator is a

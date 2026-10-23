@@ -263,8 +263,9 @@ export default function FacilityDetailPage() {
               <CardContent>
                 <ReadinessChecklist items={readinessQuery.data} />
                 <p className="mt-4 text-xs text-muted-foreground">
-                  Readiness is read-only in this console. The go-live action is not exposed
-                  here yet.
+                  Readiness is read-only in this console. The facility administrator
+                  takes the facility live from the facility setup screen once every
+                  check passes.
                 </p>
               </CardContent>
             </Card>

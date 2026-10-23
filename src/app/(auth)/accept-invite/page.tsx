@@ -25,6 +25,11 @@ function AcceptInviteForm() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token") ?? "";
+  // First-admin invitations carry `next=setup`; after signing in the
+  // new administrator lands on the setup checklist instead of the
+  // generic dashboard. The value is a fixed screen name, not a URL.
+  const next = params.get("next");
+  const returnUrl = next === "setup" ? "/admin/setup" : null;
   const {
     register,
     handleSubmit,
@@ -35,8 +40,16 @@ function AcceptInviteForm() {
   const claim = useMutation({
     mutationFn: (values: AcceptInviteFormValues) => acceptInvite(token, values.password),
     onSuccess: () => {
-      toast.success("Account activated — sign in with your new password");
-      router.replace("/login");
+      toast.success(
+        returnUrl
+          ? "Account activated — sign in to finish facility setup"
+          : "Account activated — sign in with your new password",
+      );
+      router.replace(
+        returnUrl
+          ? `/login?returnUrl=${encodeURIComponent(returnUrl)}`
+          : "/login",
+      );
     },
     onError: (error) => {
       const problem = problemOf(error);

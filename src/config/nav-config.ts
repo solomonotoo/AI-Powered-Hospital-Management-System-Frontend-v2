@@ -1,5 +1,6 @@
 import {
   Building2,
+  ClipboardCheck,
   LayoutDashboard,
   ShieldCheck,
   type LucideIcon,
@@ -29,6 +30,17 @@ export interface NavSection {
 export const facilityNav: NavSection[] = [
   {
     items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Facility",
+    items: [
+      {
+        title: "Setup & go-live",
+        url: "/admin/setup",
+        icon: ClipboardCheck,
+        permissions: ["FACILITY_UPDATE"],
+      },
+    ],
   },
   {
     label: "Account",

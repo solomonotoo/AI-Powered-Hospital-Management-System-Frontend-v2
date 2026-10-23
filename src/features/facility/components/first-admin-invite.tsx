@@ -55,7 +55,7 @@ export function FirstAdminInvite({
   // available here; the server render never produces this branch.
   const invitationLink =
     provisioned && typeof window !== "undefined"
-      ? `${window.location.origin}/accept-invite?token=${encodeURIComponent(provisioned.invitationToken)}`
+      ? `${window.location.origin}/accept-invite?token=${encodeURIComponent(provisioned.invitationToken)}&next=setup`
       : "";
 
   const submit = handleSubmit(async ({ email }) => {

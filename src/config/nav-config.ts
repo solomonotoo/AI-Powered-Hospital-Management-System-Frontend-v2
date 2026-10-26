@@ -30,6 +30,20 @@ export interface NavSection {
   items: NavItem[];
 }
 
+/**
+ * Navigation visibility rule. An item with no permission list is public
+ * inside the tier; otherwise the session must hold at least one listed
+ * permission. The backend still authorizes the route itself.
+ */
+export function isNavItemAllowed(
+  item: NavItem,
+  permissions: readonly string[] | null | undefined,
+): boolean {
+  if (!item.permissions || item.permissions.length === 0) return true;
+  if (!permissions) return false;
+  return item.permissions.some((permission) => permissions.includes(permission));
+}
+
 export const facilityNav: NavSection[] = [
   {
     items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard }],

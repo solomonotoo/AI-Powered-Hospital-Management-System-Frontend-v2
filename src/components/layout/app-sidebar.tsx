@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { facilityNav, type NavItem } from "@/config/nav-config";
+import { facilityNav, isNavItemAllowed } from "@/config/nav-config";
 import { useSession } from "@/features/identity/hooks/use-session";
 
 /**
@@ -27,14 +27,13 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const allowed = (item: NavItem): boolean => {
-    if (!item.permissions || item.permissions.length === 0) return true;
-    if (!session) return false;
-    return item.permissions.some((permission) => session.permissions.includes(permission));
-  };
-
   const sections = facilityNav
-    .map((section) => ({ ...section, items: section.items.filter(allowed) }))
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        isNavItemAllowed(item, session?.permissions),
+      ),
+    }))
     .filter((section) => section.items.length > 0);
 
   return (

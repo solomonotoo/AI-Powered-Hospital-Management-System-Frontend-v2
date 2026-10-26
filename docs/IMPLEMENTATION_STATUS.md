@@ -1,12 +1,15 @@
 # Frontend Implementation Status
 
 Last verified: **2026-10-26**, branch `feature/staff-link-completion`,
-application commit `c9c76df`, against backend `192e935` (`main`).
+application commits `c9c76df` and `083d41b`, against backend `192e935`
+(`main`).
 
-Verification in this pass: `npx tsc --noEmit`, `npm run lint`, and
-`npm run build` all passed, and the first-administrator staff-link flow was
-exercised manually in a browser. **There is no frontend automated test suite
-yet.** See section 6 for the exact evidence and section 7 for limitations.
+Verification in this pass: `pnpm test` (3 files, 12 tests),
+`pnpm exec tsc --noEmit`, `pnpm lint`, and `pnpm build` all passed. The
+first-administrator staff-link flow was exercised manually in the previous
+pass. The reload-recovery path is covered by component/unit tests; it was not
+forced in a browser. The test suite is still limited in scope. See section 6
+for the exact evidence and section 7 for limitations.
 
 This file records what the frontend repository actually contains and what has
 been proven. It is **not** a requirements document and does not override the
@@ -57,6 +60,8 @@ permissions and audit. This repository only consumes those contracts.
 - React Hook Form `7.x` and Zod `4.x` for forms and validation.
 - shadcn/ui, Tailwind CSS, Radix UI and lucide icons.
 - Axios for HTTP, with a single shared client and an in-memory access token.
+- Vitest `5.x`, Testing Library and jsdom for the initial automated test
+  harness.
 - `pnpm@10.34.5` declared as the package manager; `pnpm-lock.yaml` is checked
   in.
 
@@ -142,7 +147,7 @@ request is authorized again.
 | Full staff directory | **NOT STARTED** | The current staff feature is only the first-administrator completion card. |
 | User/role administration | **NOT STARTED** | No frontend screens for general user management, role templates or privileged assignment approval. |
 | Patient, visit, clinical, billing, lab, pharmacy | **NOT STARTED** | Later blueprint phases. |
-| Automated frontend tests | **NOT STARTED** | No Vitest, Playwright or Testing Library dependency and no test script. |
+| Automated frontend tests | **PARTIAL** | Vitest, Testing Library and jsdom are configured. 12 unit/component tests cover pending-link storage, staff onboarding validation and the pending-link card. No Playwright/E2E suite yet. |
 
 ### 4.1 First-administrator staff link
 
@@ -160,6 +165,11 @@ request is authorized again.
 - It creates one `ADMINISTRATOR` staff record with
   `POST /api/v1/staff`, stores the returned `staffId` in component state, then
   links it with `POST /api/v1/staff/{id}/link-user`.
+- The returned `staffId` is also persisted in `localStorage`, keyed by account
+  and facility, so a reload can recover a created-but-not-yet-linked record.
+  The pending key is cleared once `/identity/me` reports a `staffId`.
+- On recovery the card shows **Link staff record** instead of the create form,
+  so the user cannot accidentally create a second staff record.
 - The backend owns the one-time link rule and the staff-number sequence.
 - A failed link offers **Retry link** rather than resubmitting the create form.
 - A retry that receives `409 Conflict` reads the staff record back and treats
@@ -183,9 +193,9 @@ request is authorized again.
   `sessionStorage`.
 - The refresh token is an HttpOnly cookie held by the backend origin. The
   frontend sends it with `withCredentials`.
-- Only a non-secret session id is persisted, so a reload can resume the
-  session by exchanging the refresh cookie. If storage is unavailable, the
-  session simply does not survive a reload.
+- For authentication, only a non-secret session id is persisted, so a reload
+  can resume the session by exchanging the refresh cookie. If storage is
+  unavailable, the session simply does not survive a reload.
 - The Axios client implements single-flight refresh on `401`, avoids refresh
   for credential-check endpoints, retries the original request once, and
   returns the user to login with a return URL when refresh fails.
@@ -204,6 +214,9 @@ request is authorized again.
   account model does not receive clinical or billing routes.
 - `.env.example` is the only environment file tracked. `.env.local` and other
   `.env*` files are ignored by git.
+- The pending staff-link key stores only the staff aggregate id, scoped by
+  account and facility; it never stores names, clinical data or credentials.
+  It is removed when the session reports `staffId`.
 - API errors are rendered from RFC 7807 problem bodies; the shared helper maps
   `fieldErrors[]` onto form fields.
 
@@ -221,18 +234,19 @@ deployment environment rather than inferred from local development.
 
 | Command | Result |
 | --- | --- |
-| `npx tsc --noEmit` | Passed. |
-| `npm run lint` | Passed. |
-| `npm run build` | Passed. Next.js produced the route table for the 19 application pages plus `_not-found`. |
+| `pnpm test` | Passed: 3 files, 12 tests. |
+| `pnpm exec tsc --noEmit` | Passed. |
+| `pnpm lint` | Passed. |
+| `pnpm build` | Passed. Next.js produced the route table for the 19 application pages plus `_not-found`. |
 
-The repository declares `pnpm@10.34.5`. The commands above were run with the
-available npm/npx toolchain; `pnpm install` followed by `pnpm exec tsc
---noEmit`, `pnpm lint` and `pnpm build` is the intended equivalent. See
-section 9.
+The repository declares `pnpm@10.34.5`; the commands were run with that
+package manager on Node `24.15.0`. See section 9 for the full re-verification
+command list.
 
 ### 6.2 Manual staff-link verification
 
-Performed against backend `192e935` and a clean development facility:
+Performed in the prior pass against backend `192e935` and a clean development
+facility, before the pending-link recovery change:
 
 - A first administrator signed in without a linked staff record.
 - With `STAFF_NUMBER` absent, `/admin/setup` showed the configuration warning
@@ -249,14 +263,20 @@ Performed against backend `192e935` and a clean development facility:
 - A second `POST /api/v1/staff/{id}/link-user` for the same user returned
   `409 Conflict`; the staff row count stayed at `1`. The frontend
   reconciliation path is implemented, but the UI retry was not forced
-  end-to-end in this pass.
+  end-to-end in that pass.
 - No browser console warnings or errors were observed during the flow.
 
 This is manual evidence, not an automated regression test.
 
+The recovery change in `083d41b` is covered by a component test that renders
+the card with a pre-populated pending id and asserts that the create form is
+not offered and that **Link staff record** is shown. The storage helper is
+unit-tested for account/facility scoping and clearing. The browser reload
+path itself was not forced end-to-end.
+
 ### 6.3 Not proven
 
-- No Vitest, Playwright or Testing Library suite exists.
+- No Playwright/E2E suite exists, and the browser reload path is not automated.
 - No automated test proves authorization failures, expired grants, revoked
   sessions, facility isolation, idle-lock behavior or MFA recovery.
 - No automated test proves the `409` reconciliation path.
@@ -267,14 +287,15 @@ This is manual evidence, not an automated regression test.
 
 ## 7. Known gaps and limitations
 
-1. **No automated frontend tests.** `package.json` has no test script and no
-   test framework dependency. The only repeatable checks are typecheck, lint
-   and production build.
-2. **First-admin staff link is not reload-safe after a failed link.** The
-   created `staffId` lives in component state. If the create succeeds and the
-   link fails, the retry UI works in that tab, but a reload clears the id and
-   the user can create a second staff record. The UI warns against resubmitting
-   the form, but the state is not persisted.
+1. **Test coverage is still limited.** Vitest/Testing Library exists, but only
+   12 unit/component tests run. There is no Playwright/E2E coverage for
+   authentication, facility isolation, idle lock or the clinical journey.
+2. **Pending-link recovery is local, not server-idempotent.** The created
+   `staffId` is persisted in `localStorage`, keyed by account and facility, and
+   cleared once `/identity/me` reports a `staffId`. This survives a reload or
+   browser restart on the same browser, but clearing site storage or using a
+   different browser loses the recovery. A backend idempotency key would be
+   stronger. There is also no UI action to discard a stale pending id.
 3. **The `409` reconciliation is not exercised by an automated test.** It was
    confirmed on the backend and implemented in the client; the browser retry
    path was not forced end-to-end.
@@ -315,12 +336,14 @@ This is manual evidence, not an automated regression test.
 Before widening the frontend, complete the remaining Phase 0 administration
 surface and add automated protection around what already exists:
 
-1. Add a frontend test harness (Vitest and Testing Library at minimum) and
-   cover session bootstrap, permission-gated navigation, forced password
-   change, idle lock and the first-admin staff-link state machine.
-2. Make the first-admin create/link sequence recoverable across reloads, or
-   introduce an idempotent onboarding key so a failed link cannot become a
-   duplicate staff row.
+1. Expand the Vitest/Testing Library suite beyond the initial 12 tests:
+   session bootstrap, permission-gated navigation, forced password change,
+   idle lock, the full first-admin staff-link state machine and the `409`
+   reconciliation path.
+2. Harden the first-admin onboarding further with a backend-supported
+   idempotency key, or add a safe way to discard a stale pending id after
+   confirming the record no longer exists. Local storage recovery alone cannot
+   protect a different browser or cleared site data.
 3. Build the remaining approved Phase 0 administration screens (staff
    directory and user/role administration) only after checking them against
    the blueprint and backend contracts.
@@ -345,19 +368,16 @@ Commands:
 
 ```bash
 pnpm install
+pnpm test
 pnpm exec tsc --noEmit
 pnpm lint
 pnpm build
 pnpm dev
 ```
 
-The equivalent commands used for this pass were:
-
-```bash
-npx tsc --noEmit
-npm run lint
-npm run build
-```
+Use `pnpm test:watch` while iterating. The test runner is configured with the
+threads pool because the default fork pool timed out while starting workers on
+this Windows setup.
 
 Manual smoke path:
 
@@ -368,10 +388,14 @@ Manual smoke path:
    `/admin/setup/sequences`.
 4. Configure the sequence, create and link the first staff record, then reload
    `/identity/me` and `/admin/setup` and confirm the linked record appears.
-5. Sign in as a platform account and confirm `/platform` and
+5. If a link fails, reload `/admin/setup` and confirm the card shows the
+   pending staff record and **Link staff record** instead of the create form.
+   Retry the link and confirm the session eventually reports the staff link.
+6. Sign in as a platform account and confirm `/platform` and
    `/platform/facilities` contain no patient or clinical data.
-6. Repeat with a facility that the user is not assigned to and confirm the
+7. Repeat with a facility that the user is not assigned to and confirm the
    backend denies or returns no data. This is a backend test, not a UI test.
 
-There is no automated test command to run yet. A green typecheck, lint and
-build does **not** prove the manual flows above.
+`pnpm test` covers the pending-link storage and pending-card rendering, but it
+does not replace the browser checks above. A green typecheck, lint and build
+does **not** prove the manual flows.

@@ -51,4 +51,15 @@ describe("isNavItemAllowed", () => {
 
     expect(isNavItemAllowed(anyOf, ["SECOND_PERMISSION"])).toBe(true);
   });
+
+  it("gates the administration entries on their read permissions", () => {
+    expect(item("Staff").permissions).toEqual(["STAFF_READ"]);
+    expect(item("Users").permissions).toEqual(["IDENTITY_USER_READ"]);
+    expect(item("Roles").permissions).toEqual(["IDENTITY_ROLE_READ"]);
+    expect(item("Audit").permissions).toEqual(["AUDIT_READ"]);
+
+    expect(
+      isNavItemAllowed(item("Staff"), ["IDENTITY_USER_READ"]),
+    ).toBe(false);
+  });
 });

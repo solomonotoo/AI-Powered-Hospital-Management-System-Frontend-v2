@@ -13,6 +13,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { useLogout } from "@/features/identity/hooks/use-auth";
 import { useSession } from "@/features/identity/hooks/use-session";
+import { LicenceExpiryList } from "@/features/staff/components/licence-expiry-list";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -102,6 +103,10 @@ export default function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <div className="mt-4">
+        <LicenceExpiryList />
+      </div>
 
       {session.permissions.length > 0 && (
         <Card className="mt-4">

@@ -5,7 +5,10 @@ import {
   LayoutDashboard,
   Network,
   Printer,
+  ScrollText,
   ShieldCheck,
+  UserCog,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -80,6 +83,35 @@ export const facilityNav: NavSection[] = [
         url: "/admin/setup/print-profile",
         icon: Printer,
         permissions: ["CONFIG_READ"],
+      },
+    ],
+  },
+  {
+    label: "Workforce & access",
+    items: [
+      {
+        title: "Staff",
+        url: "/admin/staff",
+        icon: UsersRound,
+        permissions: ["STAFF_READ"],
+      },
+      {
+        title: "Users",
+        url: "/admin/users",
+        icon: UserCog,
+        permissions: ["IDENTITY_USER_READ"],
+      },
+      {
+        title: "Roles",
+        url: "/admin/roles",
+        icon: ShieldCheck,
+        permissions: ["IDENTITY_ROLE_READ"],
+      },
+      {
+        title: "Audit",
+        url: "/admin/audit",
+        icon: ScrollText,
+        permissions: ["AUDIT_READ"],
       },
     ],
   },

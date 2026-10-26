@@ -38,6 +38,11 @@ import { fieldErrorsOf, problemOf } from "@/lib/http";
 import { getStaff } from "../api/staff";
 import { useLinkStaffUser, useOnboardStaff, useStaff } from "../hooks/use-staff";
 import {
+  clearPendingStaffLink,
+  readPendingStaffLink,
+  savePendingStaffLink,
+} from "../pending-staff-link";
+import {
   firstAdminStaffSchema,
   isFirstAdminStaffFormField,
   toOnboardStaffInput,
@@ -145,7 +150,12 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
   const link = useLinkStaffUser();
   const sessionQuery = useSession();
   const sequences = useSequences(canReadConfig);
-  const [createdStaffId, setCreatedStaffId] = useState<string | null>(null);
+  // Recover a staff record that was created before a failed link. The
+  // backend still owns the one-time link rule; this only prevents the UI
+  // from offering a second create after a reload.
+  const [createdStaffId, setCreatedStaffId] = useState<string | null>(() =>
+    readPendingStaffLink(session.userId, session.facilityId),
+  );
   const [linkReconciled, setLinkReconciled] = useState(false);
 
   const emailPrefill = session.username.includes("@") ? session.username : "";
@@ -222,6 +232,7 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
       if (!staffId) {
         staffId = await onboard.mutateAsync(toOnboardStaffInput(values));
         setCreatedStaffId(staffId);
+        savePendingStaffLink(session.userId, session.facilityId, staffId);
       }
 
       await link.mutateAsync({ staffId, userId: session.userId });
@@ -361,14 +372,14 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
                     ? "The workforce record exists, but linking it to your account did not finish. Retry the link. Do not submit the form again — that would create a second staff record."
                     : linkRecorded
                       ? "The account link is saved. Your session may take a moment to show it."
-                      : "The workforce record exists and is ready to link."}
+                      : "The workforce record exists and is ready to link. Use the button below to finish the link; do not submit the create form again."}
               </AlertDescription>
             </Alert>
             <p className="text-xs text-muted-foreground">
               Staff record{" "}
               <span className="font-mono break-all">{createdStaffId}</span>
             </p>
-            {linkFailed && (
+            {!linkRecorded && (
               <Button
                 type="button"
                 disabled={linking}
@@ -379,7 +390,11 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
                 ) : (
                   <RefreshCw aria-hidden="true" />
                 )}
-                {linking ? "Linking…" : "Retry link"}
+                {linking
+                  ? "Linking…"
+                  : linkFailed
+                    ? "Retry link"
+                    : "Link staff record"}
               </Button>
             )}
             {linkRecorded && (
@@ -593,6 +608,13 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
  */
 export function FirstAdminStaffLink() {
   const { data: session, isPending } = useSession();
+
+  // Once the account side catches up, the pending id is no longer needed.
+  useEffect(() => {
+    if (session?.staffId) {
+      clearPendingStaffLink(session.userId, session.facilityId);
+    }
+  }, [session?.staffId, session?.userId, session?.facilityId]);
 
   if (isPending) return <Skeleton className="h-40 w-full" />;
   if (!session || session.accountType !== "STAFF") return null;

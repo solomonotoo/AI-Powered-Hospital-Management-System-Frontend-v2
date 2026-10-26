@@ -22,6 +22,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoLivePanel } from "@/features/facility/components/go-live-panel";
 import { useSession } from "@/features/identity/hooks/use-session";
+import { FirstAdminStaffLink } from "@/features/staff/components/first-admin-staff-link";
 
 /**
  * Facility setup / go-live (blueprint 4.1 step 7 and 8.6).
@@ -97,6 +98,8 @@ export default function FacilitySetupPage() {
 
       <div className="space-y-4">
         <GoLivePanel />
+
+        <FirstAdminStaffLink />
 
         <Card>
           <CardHeader>

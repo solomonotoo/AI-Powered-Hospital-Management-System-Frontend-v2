@@ -1,10 +1,10 @@
 # Frontend Implementation Status
 
 Last verified: **2026-10-26**, branch `feature/staff-link-completion`,
-application commits `c9c76df` and `083d41b`, against backend `192e935`
+application commits `c9c76df` through `57320be`, against backend `192e935`
 (`main`).
 
-Verification in this pass: `pnpm test` (3 files, 12 tests),
+Verification in this pass: `pnpm test` (8 files, 42 tests),
 `pnpm exec tsc --noEmit`, `pnpm lint`, and `pnpm build` all passed. The
 first-administrator staff-link flow was exercised manually in the previous
 pass. The reload-recovery path is covered by component/unit tests; it was not
@@ -147,7 +147,7 @@ request is authorized again.
 | Full staff directory | **NOT STARTED** | The current staff feature is only the first-administrator completion card. |
 | User/role administration | **NOT STARTED** | No frontend screens for general user management, role templates or privileged assignment approval. |
 | Patient, visit, clinical, billing, lab, pharmacy | **NOT STARTED** | Later blueprint phases. |
-| Automated frontend tests | **PARTIAL** | Vitest, Testing Library and jsdom are configured. 12 unit/component tests cover pending-link storage, staff onboarding validation and the pending-link card. No Playwright/E2E suite yet. |
+| Automated frontend tests | **PARTIAL** | Vitest, Testing Library and jsdom are configured. 42 unit/component tests cover session bootstrap, session-gate routing, navigation permissions, idle timeout/lock, pending-link storage, staff onboarding validation and the staff-link retry/`409` state machine. No Playwright/E2E suite yet. |
 
 ### 4.1 First-administrator staff link
 
@@ -234,7 +234,7 @@ deployment environment rather than inferred from local development.
 
 | Command | Result |
 | --- | --- |
-| `pnpm test` | Passed: 3 files, 12 tests. |
+| `pnpm test` | Passed: 8 files, 42 tests. |
 | `pnpm exec tsc --noEmit` | Passed. |
 | `pnpm lint` | Passed. |
 | `pnpm build` | Passed. Next.js produced the route table for the 19 application pages plus `_not-found`. |
@@ -268,18 +268,20 @@ facility, before the pending-link recovery change:
 
 This is manual evidence, not an automated regression test.
 
-The recovery change in `083d41b` is covered by a component test that renders
-the card with a pre-populated pending id and asserts that the create form is
-not offered and that **Link staff record** is shown. The storage helper is
-unit-tested for account/facility scoping and clearing. The browser reload
-path itself was not forced end-to-end.
+The recovery change in `083d41b` is covered by component tests that render the
+card with a pre-populated pending id, assert that the create form is not
+offered, and exercise the link/retry state. The storage helper is unit-tested
+for account/facility scoping and clearing. One test treats a `409` as success
+when the staff record belongs to the current user; another rejects the same
+`409` when it belongs to a different user. The browser reload and retry paths
+were not forced end-to-end.
 
 ### 6.3 Not proven
 
 - No Playwright/E2E suite exists, and the browser reload path is not automated.
-- No automated test proves authorization failures, expired grants, revoked
-  sessions, facility isolation, idle-lock behavior or MFA recovery.
-- No automated test proves the `409` reconciliation path.
+- No automated test proves backend authorization failures, expired or revoked
+  assignments, facility isolation, or the full login/refresh exchange. The
+  session-bootstrap unit test covers client-side success/failure handling only.
 - No end-to-end test proves the future clinical journey, because those screens
   do not exist yet.
 
@@ -287,18 +289,18 @@ path itself was not forced end-to-end.
 
 ## 7. Known gaps and limitations
 
-1. **Test coverage is still limited.** Vitest/Testing Library exists, but only
-   12 unit/component tests run. There is no Playwright/E2E coverage for
-   authentication, facility isolation, idle lock or the clinical journey.
+1. **Test coverage is still limited.** 42 unit/component tests run, but there
+   is no Playwright/E2E coverage for the real login/bootstrap path, facility
+   isolation or the clinical journey.
 2. **Pending-link recovery is local, not server-idempotent.** The created
    `staffId` is persisted in `localStorage`, keyed by account and facility, and
    cleared once `/identity/me` reports a `staffId`. This survives a reload or
    browser restart on the same browser, but clearing site storage or using a
    different browser loses the recovery. A backend idempotency key would be
    stronger. There is also no UI action to discard a stale pending id.
-3. **The `409` reconciliation is not exercised by an automated test.** It was
-   confirmed on the backend and implemented in the client; the browser retry
-   path was not forced end-to-end.
+3. **The `409` reconciliation is covered only at component level.** Same-user
+   and different-user `409` responses are tested, but the real failed-link,
+   reload and browser retry sequence has not been forced end-to-end.
 4. **The first-admin slice is narrower than a staff directory.** There is no
    general staff list, search, edit, deactivate or clinical-category
    management screen yet.
@@ -336,10 +338,10 @@ path itself was not forced end-to-end.
 Before widening the frontend, complete the remaining Phase 0 administration
 surface and add automated protection around what already exists:
 
-1. Expand the Vitest/Testing Library suite beyond the initial 12 tests:
-   session bootstrap, permission-gated navigation, forced password change,
-   idle lock, the full first-admin staff-link state machine and the `409`
-   reconciliation path.
+1. Add browser/E2E coverage with Playwright for the real login/bootstrap path,
+   idle lock, and the failed-link/reload/`409` retry sequence. Keep extending
+   the Vitest suite where a browser is not required; backend authorization and
+   facility-isolation proof still belongs to the backend test suite.
 2. Harden the first-admin onboarding further with a backend-supported
    idempotency key, or add a safe way to discard a stale pending id after
    confirming the record no longer exists. Local storage recovery alone cannot
@@ -396,6 +398,7 @@ Manual smoke path:
 7. Repeat with a facility that the user is not assigned to and confirm the
    backend denies or returns no data. This is a backend test, not a UI test.
 
-`pnpm test` covers the pending-link storage and pending-card rendering, but it
-does not replace the browser checks above. A green typecheck, lint and build
-does **not** prove the manual flows.
+`pnpm test` covers session bootstrap, session-gate routing, navigation
+permissions, idle timeout/lock, pending-link storage and the staff-link
+retry/`409` states, but it does not replace the browser checks above. A green
+typecheck, lint and build does **not** prove the manual flows.

@@ -194,4 +194,58 @@ describe("FirstAdminStaffLink", () => {
       screen.getByRole("button", { name: "Retry link" }),
     ).toBeInTheDocument();
   });
+
+  it("discards a pending id only when the server says the staff record is gone", async () => {
+    savePendingStaffLink("user-1", "facility-1", "staff-1");
+    mocks.getStaff.mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          status: 400,
+          code: "BAD_REQUEST",
+          message: "Unknown staff: staff-1",
+        },
+      },
+    });
+    renderCard();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Discard pending record" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check and discard" }),
+    );
+
+    await waitFor(() => expect(mocks.getStaff).toHaveBeenCalledWith("staff-1"));
+    expect(
+      await screen.findByText("Complete your workforce profile"),
+    ).toBeInTheDocument();
+    expect(readPendingStaffLink("user-1", "facility-1")).toBeNull();
+  });
+
+  it("does not discard a pending id when the staff record still exists", async () => {
+    savePendingStaffLink("user-1", "facility-1", "staff-1");
+    mocks.getStaff.mockResolvedValue({
+      ...staffDetail,
+      userId: "different-user",
+    });
+    renderCard();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Discard pending record" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check and discard" }),
+    );
+
+    await waitFor(() => expect(mocks.getStaff).toHaveBeenCalledWith("staff-1"));
+    expect(
+      await screen.findByText(
+        "This staff record is linked to a different account and cannot be discarded here.",
+      ),
+    ).toBeInTheDocument();
+    expect(readPendingStaffLink("user-1", "facility-1")).toBe("staff-1");
+    expect(screen.getByText("Staff record created")).toBeInTheDocument();
+  });
 });

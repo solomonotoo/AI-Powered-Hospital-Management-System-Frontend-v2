@@ -116,6 +116,7 @@ export interface ApiStubState {
   linkStaffCalls: number;
   getStaffCalls: number;
   linked: boolean;
+  staffRecordExists: boolean;
 }
 
 export interface ApiStub {
@@ -152,6 +153,7 @@ export async function installApiStub(page: Page): Promise<ApiStub> {
     linkStaffCalls: 0,
     getStaffCalls: 0,
     linked: false,
+    staffRecordExists: true,
   };
 
   await page.route("**/api/v1/**", async (route) => {
@@ -278,6 +280,15 @@ export async function installApiStub(page: Page): Promise<ApiStub> {
 
     if (method === "GET" && /^\/api\/v1\/staff\/[^/]+$/.test(path)) {
       state.getStaffCalls += 1;
+      if (!state.staffRecordExists) {
+        // Match the staff module's current contract for a missing row:
+        // 400 BAD_REQUEST with "Unknown staff: <id>".
+        await respond(
+          400,
+          problem(400, "BAD_REQUEST", `Unknown staff: ${TEST_STAFF_ID}`),
+        );
+        return;
+      }
       // Reading the row back after the 409 is how the UI proves the link
       // belongs to this same account. The identity endpoint then reflects
       // the link so the card can switch to its linked state.

@@ -6,6 +6,7 @@ import {
   IdCard,
   Loader2,
   RefreshCw,
+  Trash2,
   UserRoundPlus,
 } from "lucide-react";
 import Link from "next/link";
@@ -21,6 +22,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -79,6 +89,22 @@ function todayIso(): string {
 
 function categoryLabel(category: StaffCategory): string {
   return STAFF_CATEGORY_LABELS[category] ?? category;
+}
+
+/**
+ * The staff module currently reports a missing record as a 400
+ * BAD_REQUEST with "Unknown staff: <id>" (its query handler throws
+ * IllegalArgumentException). Treat that existing contract, and a future
+ * 404, as the only safe evidence that a pending local id can be cleared.
+ */
+function isUnknownStaffProblem(error: unknown): boolean {
+  const problem = problemOf(error);
+  if (problem.status === 404) return true;
+  return (
+    problem.status === 400 &&
+    problem.code === "BAD_REQUEST" &&
+    (problem.message ?? "").startsWith("Unknown staff")
+  );
 }
 
 /** Linked state: the account has a staff record; confirm it reads back. */
@@ -157,6 +183,9 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
     readPendingStaffLink(session.userId, session.facilityId),
   );
   const [linkReconciled, setLinkReconciled] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [discardError, setDiscardError] = useState<string | null>(null);
+  const [discarding, setDiscarding] = useState(false);
 
   const emailPrefill = session.username.includes("@") ? session.username : "";
 
@@ -221,6 +250,63 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
     return false;
   };
 
+  const clearStalePending = () => {
+    clearPendingStaffLink(session.userId, session.facilityId);
+    setCreatedStaffId(null);
+    setLinkReconciled(false);
+    setDiscardError(null);
+    setDiscardOpen(false);
+    toast.success("Pending staff record cleared", {
+      description:
+        "The server no longer has that staff record. The create form is available again.",
+    });
+  };
+
+  /**
+   * Safe discard: the local pending id is cleared only after the server
+   * confirms the record is gone. An existing record (unlinked, linked to
+   * this user, or linked elsewhere) is never silently abandoned, because
+   * that could allow a duplicate staff row to be created.
+   */
+  const discardPending = async () => {
+    if (!createdStaffId || discarding) return;
+    setDiscarding(true);
+    setDiscardError(null);
+    try {
+      const staff = await getStaff(createdStaffId);
+      if (staff.userId === session.userId) {
+        setLinkReconciled(true);
+        setDiscardOpen(false);
+        if (await waitForSessionLink()) {
+          toast.success("Workforce profile linked");
+        } else {
+          toast.message("Link recorded", {
+            description:
+              "Your session may take a moment to show the staff link. Refresh the page if it still looks unlinked.",
+          });
+        }
+        return;
+      }
+
+      const message = staff.userId
+        ? "This staff record is linked to a different account and cannot be discarded here."
+        : "This staff record still exists and is not linked. Use Link staff record instead of discarding it.";
+      setDiscardError(message);
+      toast.error("Pending record not discarded");
+    } catch (error) {
+      if (isUnknownStaffProblem(error)) {
+        clearStalePending();
+        return;
+      }
+      setDiscardError(
+        problemOf(error).message ?? "Could not check the pending staff record.",
+      );
+      toast.error("Pending record not discarded");
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
   const submit = handleSubmit(async (values) => {
     if (!sequenceReady) {
       toast.error("Configure the staff number sequence first");
@@ -246,6 +332,11 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
         });
       }
     } catch (error) {
+      if (isUnknownStaffProblem(error)) {
+        clearStalePending();
+        return;
+      }
+
       const problem = problemOf(error);
       let firstInvalid: string | null = null;
 
@@ -300,6 +391,11 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
         } catch {
           // Fall through to the original conflict message.
         }
+      }
+
+      if (isUnknownStaffProblem(error)) {
+        clearStalePending();
+        return;
       }
 
       toast.error(problem.message ?? "Could not link the staff record");
@@ -396,6 +492,62 @@ function CompleteStaffProfileCard({ session }: { session: Session }) {
                     ? "Retry link"
                     : "Link staff record"}
               </Button>
+            )}
+            {!linkRecorded && (
+              <Dialog
+                open={discardOpen}
+                onOpenChange={(next) => {
+                  setDiscardOpen(next);
+                  if (!next) setDiscardError(null);
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button type="button" variant="ghost" disabled={linking}>
+                    <Trash2 aria-hidden="true" />
+                    Discard pending record
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Discard pending staff record?</DialogTitle>
+                    <DialogDescription>
+                      The app will check the server first. It only clears the
+                      local pending id when the staff record no longer exists.
+                      An existing record must be linked instead, so a duplicate
+                      cannot be created.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {discardError && (
+                    <Alert variant="destructive">
+                      <AlertTitle>Pending record not discarded</AlertTitle>
+                      <AlertDescription>{discardError}</AlertDescription>
+                    </Alert>
+                  )}
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={discarding}
+                      onClick={() => setDiscardOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={discarding}
+                      onClick={() => void discardPending()}
+                    >
+                      {discarding ? (
+                        <Loader2 aria-hidden="true" className="animate-spin" />
+                      ) : (
+                        <Trash2 aria-hidden="true" />
+                      )}
+                      {discarding ? "Checking…" : "Check and discard"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             )}
             {linkRecorded && (
               <Button

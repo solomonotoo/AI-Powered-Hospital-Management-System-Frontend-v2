@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   installApiStub,
   PENDING_STAFF_KEY,
+  TEST_STAFF_ID,
 } from "./support/api-stub";
 import { signIn } from "./support/session";
 
@@ -83,4 +84,47 @@ test("recovers a failed first-admin link after reload and reconciles a 409", asy
       page.evaluate((key) => window.localStorage.getItem(key), PENDING_STAFF_KEY),
     )
     .toBeNull();
+});
+
+test("discards a stale pending staff id only after the server confirms it is gone", async ({
+  page,
+}) => {
+  const api = await installApiStub(page);
+  await signIn(page);
+  await page.goto("/admin/setup");
+
+  await expect(
+    page.getByRole("heading", { name: "Facility setup" }),
+  ).toBeVisible();
+  await page.evaluate(
+    ({ key, staffId }) => window.localStorage.setItem(key, staffId),
+    { key: PENDING_STAFF_KEY, staffId: TEST_STAFF_ID },
+  );
+
+  // The next read must prove the record is absent before the local
+  // pending id is cleared.
+  api.state.staffRecordExists = false;
+  await page.reload();
+
+  await expect(
+    page.locator('[data-slot="alert-title"]', {
+      hasText: "Staff record created",
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Discard pending record" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Check and discard" }).click();
+
+  await expect(
+    page.locator('[data-slot="card-title"]', {
+      hasText: "Complete your workforce profile",
+    }),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate((key) => window.localStorage.getItem(key), PENDING_STAFF_KEY),
+    )
+    .toBeNull();
+  expect(api.state.getStaffCalls).toBe(1);
+  expect(api.state.createStaffCalls).toBe(0);
 });

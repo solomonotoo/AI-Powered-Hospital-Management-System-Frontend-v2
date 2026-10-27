@@ -11,6 +11,7 @@ import {
   listUsers,
   resetUserMfa,
   resetUserPassword,
+  revokeUserSessions,
   unlockUser,
 } from "../api/users";
 import type { InviteUserInput, UserListParams } from "../types/admin";
@@ -111,4 +112,8 @@ export function useUnlockUser() {
 
 export function useResetUserMfa() {
   return useUserAction((userId: string) => resetUserMfa(userId));
+}
+
+export function useRevokeUserSessions() {
+  return useUserAction((userId: string) => revokeUserSessions(userId));
 }

@@ -102,3 +102,12 @@ export async function listUserSessions(
   });
   return normalizePaged(data);
 }
+
+/**
+ * Revoke every usable session for this account at the caller's facility.
+ * The backend also allows a user to revoke their own sessions without
+ * IDENTITY_SESSION_REVOKE; other facilities' sessions are untouched.
+ */
+export async function revokeUserSessions(userId: string): Promise<void> {
+  await api.delete(`/api/v1/identity/users/${userId}/sessions`);
+}

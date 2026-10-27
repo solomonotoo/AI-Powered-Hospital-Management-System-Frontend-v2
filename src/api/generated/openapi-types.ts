@@ -958,7 +958,7 @@ export interface paths {
         get: operations["sessions"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["revokeSessions"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2000,7 +2000,9 @@ export interface operations {
     };
     getRole: {
         parameters: {
-            query?: never;
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
             header?: never;
             path: {
                 code: string;
@@ -2022,7 +2024,9 @@ export interface operations {
     };
     updateRole: {
         parameters: {
-            query?: never;
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
             header?: never;
             path: {
                 code: string;
@@ -2046,7 +2050,9 @@ export interface operations {
     };
     deleteRole: {
         parameters: {
-            query?: never;
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
             header?: never;
             path: {
                 code: string;
@@ -2643,7 +2649,8 @@ export interface operations {
     };
     listRoles: {
         parameters: {
-            query?: {
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
                 tier?: "PLATFORM" | "FACILITY";
             };
             header?: never;
@@ -3647,6 +3654,29 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PagedResponseUserSessionView"];
                 };
+            };
+        };
+    };
+    revokeSessions: {
+        parameters: {
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

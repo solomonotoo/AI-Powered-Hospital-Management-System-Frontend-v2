@@ -2,13 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  approveAssignment,
   assignRole,
   cloneRole,
   createRole,
   deleteRole,
   getRole,
+  listPendingAssignments,
   listPermissions,
   listRoles,
+  rejectAssignment,
   updateRole,
 } from "../api/roles";
 import type {
@@ -17,14 +20,22 @@ import type {
   CreateRoleInput,
   RoleTier,
   UpdateRoleInput,
+  UserListParams,
 } from "../types/admin";
 import { sessionQueryKey } from "./use-session";
+import { userQueryKeys } from "./use-users";
 
 export const roleQueryKeys = {
   all: ["identity", "roles"] as const,
   list: (tier?: RoleTier) => [...roleQueryKeys.all, "list", tier] as const,
   detail: (code: string) => [...roleQueryKeys.all, "detail", code] as const,
   permissions: () => ["identity", "permissions"] as const,
+};
+
+export const assignmentQueryKeys = {
+  all: ["identity", "assignments"] as const,
+  pending: (params: UserListParams) =>
+    [...assignmentQueryKeys.all, "pending", params] as const,
 };
 
 export function useRoles(tier?: RoleTier, enabled = true) {
@@ -106,6 +117,46 @@ export function useAssignRole() {
       // server; the current session only changes if this was a self
       // assignment, which the backend rejects. Refresh defensively.
       void queryClient.invalidateQueries({ queryKey: sessionQueryKey });
+      void queryClient.invalidateQueries({ queryKey: userQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: assignmentQueryKeys.all });
     },
   });
+}
+
+export function usePendingAssignments(
+  params: UserListParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: assignmentQueryKeys.pending(params),
+    queryFn: () => listPendingAssignments(params),
+    enabled,
+    staleTime: 15_000,
+  });
+}
+
+function useAssignmentDecision(
+  mutationFn: (assignmentId: string) => Promise<void>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: assignmentQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: sessionQueryKey });
+    },
+  });
+}
+
+export function useApproveAssignment() {
+  return useAssignmentDecision((assignmentId: string) =>
+    approveAssignment(assignmentId),
+  );
+}
+
+export function useRejectAssignment() {
+  return useAssignmentDecision((assignmentId: string) =>
+    rejectAssignment(assignmentId),
+  );
 }

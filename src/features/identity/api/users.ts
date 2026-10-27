@@ -1,9 +1,12 @@
+import type { components } from "@/api/generated/openapi-types";
 import { api } from "@/lib/http";
-import type { PagedResponse } from "@/lib/paged";
+import { normalizePaged, type PagedResponse } from "@/lib/paged";
 import type {
   InvitationTokenView,
   InviteUserInput,
+  UserAssignmentView,
   UserListParams,
+  UserSessionView,
   UserView,
 } from "../types/admin";
 
@@ -66,4 +69,36 @@ export async function unlockUser(userId: string): Promise<void> {
 
 export async function resetUserMfa(userId: string): Promise<void> {
   await api.post(`/api/v1/identity/users/${userId}/mfa-reset`);
+}
+
+/** Facility-scoped assignment history for the user-detail access tab. */
+export async function listUserAssignments(
+  userId: string,
+  params: UserListParams = {},
+): Promise<PagedResponse<UserAssignmentView>> {
+  const { data } = await api.get<
+    components["schemas"]["PagedResponseUserAssignmentView"]
+  >(`/api/v1/identity/users/${userId}/assignments`, {
+    params: {
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  });
+  return normalizePaged(data);
+}
+
+/** Usable sessions at the caller's facility, with the caller's row marked. */
+export async function listUserSessions(
+  userId: string,
+  params: UserListParams = {},
+): Promise<PagedResponse<UserSessionView>> {
+  const { data } = await api.get<
+    components["schemas"]["PagedResponseUserSessionView"]
+  >(`/api/v1/identity/users/${userId}/sessions`, {
+    params: {
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  });
+  return normalizePaged(data);
 }

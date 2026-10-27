@@ -948,6 +948,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/identity/users/{id}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["sessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/users/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["assignments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/identity/permissions": {
         parameters: {
             query?: never;
@@ -1020,6 +1052,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["pending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/assignments/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["pendingAssignments"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1607,6 +1655,69 @@ export interface components {
             /** Format: date-time */
             lastLoginAt?: string;
         };
+        PagedResponseUserSessionView: {
+            content?: components["schemas"]["UserSessionView"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        UserSessionView: {
+            /** Format: uuid */
+            sessionId?: string;
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            facilityId?: string;
+            ipAddress?: string;
+            userAgent?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            lastUsedAt?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            current?: boolean;
+        };
+        PagedResponseUserAssignmentView: {
+            content?: components["schemas"]["UserAssignmentView"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        UserAssignmentView: {
+            /** Format: uuid */
+            assignmentId?: string;
+            roleCode?: string;
+            roleName?: string;
+            /** Format: uuid */
+            facilityId?: string;
+            /** Format: uuid */
+            unitId?: string;
+            status?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            /** Format: uuid */
+            grantedBy?: string;
+            /** Format: uuid */
+            approvedBy?: string;
+            bootstrapGrant?: boolean;
+        };
         RoleView: {
             code?: string;
             name?: string;
@@ -1671,6 +1782,37 @@ export interface components {
             expiresAt?: string;
             reviewed?: boolean;
             reviewOutcome?: string;
+        };
+        PagedResponsePendingAssignmentView: {
+            content?: components["schemas"]["PendingAssignmentView"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        PendingAssignmentView: {
+            /** Format: uuid */
+            assignmentId?: string;
+            /** Format: uuid */
+            userId?: string;
+            username?: string;
+            roleCode?: string;
+            roleName?: string;
+            /** Format: uuid */
+            unitId?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            /** Format: uuid */
+            grantedBy?: string;
+            grantedByUsername?: string;
         };
         FacilityView: {
             /** Format: uuid */
@@ -2359,6 +2501,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2381,6 +2524,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2405,6 +2549,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2427,6 +2572,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2449,6 +2595,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2753,6 +2900,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2775,6 +2923,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -2797,6 +2946,7 @@ export interface operations {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
             };
             header?: never;
             path: {
@@ -3427,7 +3577,8 @@ export interface operations {
     };
     list_1: {
         parameters: {
-            query?: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
                 page?: number;
                 size?: number;
             };
@@ -3450,7 +3601,9 @@ export interface operations {
     };
     get_2: {
         parameters: {
-            query?: never;
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
             header?: never;
             path: {
                 id: string;
@@ -3466,6 +3619,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserView"];
+                };
+            };
+        };
+    };
+    sessions: {
+        parameters: {
+            query: {
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+                facilityId: components["schemas"]["FacilityId"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponseUserSessionView"];
+                };
+            };
+        };
+    };
+    assignments: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponseUserAssignmentView"];
                 };
             };
         };
@@ -3576,6 +3782,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BreakGlassReviewView"][];
+                };
+            };
+        };
+    };
+    pendingAssignments: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponsePendingAssignmentView"];
                 };
             };
         };

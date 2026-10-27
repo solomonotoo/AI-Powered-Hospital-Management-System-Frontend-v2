@@ -108,6 +108,12 @@ export const facilityNav: NavSection[] = [
         permissions: ["IDENTITY_ROLE_READ"],
       },
       {
+        title: "Approvals",
+        url: "/admin/approvals",
+        icon: ClipboardCheck,
+        permissions: ["IDENTITY_ROLE_APPROVE_PRIVILEGED"],
+      },
+      {
         title: "Audit",
         url: "/admin/audit",
         icon: ScrollText,

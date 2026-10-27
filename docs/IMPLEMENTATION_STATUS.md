@@ -1,14 +1,15 @@
 # Frontend Implementation Status
 
 Last verified: **2026-10-27**, branch `feature/admin-foundation-screens`
-(on top of `31784ae`), against backend `192e935` (`main`).
+(on top of `e9e8855`), against backend `0c16940`
+(`feature/identity-admin-read-endpoints`).
 
-Verification in this pass: `pnpm test` (10 files, 62 tests),
-`pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` (29 application pages
+Verification in this pass: `pnpm test` (13 files, 67 tests),
+`pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` (30 application pages
 plus the framework `_not-found` route), and `pnpm test:e2e` (4 Playwright
 browser tests) all passed. The OpenAPI contract was regenerated with
 `pnpm generate:api` into `src/api/generated/openapi-types.ts`; it currently
-contains 73 Phase 0 paths. The browser suite drives the real Next.js UI
+contains 76 Phase 0 paths. The browser suite drives the real Next.js UI
 against a deterministic in-test API stub; it does not use seeded credentials
 or the local database. The first-administrator staff-link flow was exercised
 manually in an earlier pass. The new administration screens have not yet been
@@ -84,6 +85,8 @@ foundation**:
 - staff directory, registration, detail, profile/status/licence/posting
   actions and the dashboard licence-expiry watch;
 - user directory, invitation, account actions and per-user audit activity;
+- the privileged-grant approvals queue and the user-detail assignment and
+  session views;
 - facility role list, custom-role creation/editing/cloning/deletion and
   permission-grid management, plus role assignment;
 - facility-scoped audit search;
@@ -100,7 +103,7 @@ executed in this frontend yet.
 
 ## 3. Route inventory
 
-**CONFIRMED** from the `src/app` route tree. There are 29 application pages
+**CONFIRMED** from the `src/app` route tree. There are 30 application pages
 plus the framework `_not-found` route.
 
 | Route | Tier | Access gate | Purpose |
@@ -125,10 +128,11 @@ plus the framework `_not-found` route.
 | `/admin/staff/[id]` | facility | `STAFF_READ`; actions need `STAFF_UPDATE`, `STAFF_STATUS_MANAGE`, `STAFF_LICENCE_MANAGE` or `STAFF_ASSIGN` | Staff profile, account link, postings, licences and employment status. |
 | `/admin/users` | facility | `IDENTITY_USER_READ`; invite button needs `IDENTITY_USER_INVITE` | Paged user-account directory. |
 | `/admin/users/invite` | facility | `IDENTITY_USER_INVITE` | Create an invitation and reveal its one-time token. |
-| `/admin/users/[id]` | facility | `IDENTITY_USER_READ`; actions use separate identity permissions | Account facts, audited actions, MFA/password reset and role assignment. |
+| `/admin/users/[id]` | facility | `IDENTITY_USER_READ`; actions use separate identity permissions | Account facts, audited actions, MFA/password reset, assignment history and role assignment; sessions need `IDENTITY_SESSION_REVOKE` or self. |
 | `/admin/roles` | facility | `IDENTITY_ROLE_READ`; create button needs `IDENTITY_ROLE_MANAGE` | Facility role list and template/custom-role distinction. |
 | `/admin/roles/new` | facility | `IDENTITY_ROLE_MANAGE` | Create a custom role from the permission catalogue. |
 | `/admin/roles/[code]` | facility | `IDENTITY_ROLE_READ`; edit/clone/delete need `IDENTITY_ROLE_MANAGE` | Role permission grid and custom-role lifecycle. |
+| `/admin/approvals` | facility | `IDENTITY_ROLE_APPROVE_PRIVILEGED` | Facility-scoped queue of pending privileged grants with approve/reject decisions. |
 | `/admin/audit` | facility | `AUDIT_READ` | Facility-scoped audit search with pagination. |
 | `/platform` | platform | `SessionGate(PLATFORM)` | Platform-console landing page; no clinical data. |
 | `/platform/facilities` | platform | `FACILITY_LIST_ALL` | Platform-wide facility registry. |
@@ -169,11 +173,11 @@ request is authorized again.
 | Platform first-admin invitation | **BUILT** | `POST /api/v1/identity/facilities/{id}/first-admin`; the invited account receives a one-time bootstrap `FACILITY_ADMIN` grant and the link is shown once. |
 | Platform administrator summary | **BUILT** | Read-only `FACILITY_ADMIN` grant summary from `/identity/facilities/{id}/admin-users`; no user-directory query and no clinical data. |
 | Staff directory and record management | **BUILT** | Paged facility-scoped list/search, registration wizard, detail, profile edit, employment-status changes with reason, licence append and unit postings. The dashboard shows the server-computed expiring-licence watch. Qualification entry and richer directory filters are not implemented. |
-| User account administration | **BUILT** | Paged account directory, email invitation with one-time token, account detail, disable/enable/unlock, password-reset token, MFA reset and per-user audit activity. Pending-assignment approval, existing assignment/session lists and platform-account administration are blocked on missing backend endpoints. |
+| User account administration | **BUILT** | Paged account directory, email invitation with one-time token, account detail, disable/enable/unlock, password-reset token, MFA reset, per-user audit activity, facility-scoped assignment history and active-session list. The approvals queue applies approve/reject to pending privileged grants. Session revocation and platform-account administration are not exposed by the backend. |
 | Role administration and assignment | **BUILT** | Facility role list, custom-role create/edit/clone/delete, catalogue-driven permission grid and role assignment scoped to the current facility. Privileged grants remain subject to backend maker-checker. |
 | Audit search | **BUILT** | Facility-scoped search by stream, outcome, action, actor and date range, with pagination and an event-detail view. The admin UI omits patient filters so patient identifiers do not enter query strings. Export and anomaly dashboards are not implemented. |
 | Patient, visit, clinical, billing, lab, pharmacy | **NOT STARTED** | Later blueprint phases. |
-| Automated frontend tests | **PARTIAL** | Vitest, Testing Library and jsdom cover 62 unit/component cases: session bootstrap, session-gate routing, navigation permissions, idle timeout/lock, pending-link storage, staff onboarding validation (including blank optional licence rows), role/assignment date mapping, date-only formatting and the staff-link retry/`409`/safe-discard state machine. Playwright runs 4 browser tests against a deterministic API stub: login plus reload/resume, idle lock/unlock, failed-link/reload/`409` reconciliation, and safe stale-pending discard. The browser suite proves UI transitions, not backend authorization or facility isolation. |
+| Automated frontend tests | **PARTIAL** | Vitest, Testing Library and jsdom cover 67 unit/component cases: session bootstrap, session-gate routing, navigation permissions, idle timeout/lock, pending-link storage, staff onboarding validation (including blank optional licence rows), role/assignment date mapping, date-only formatting, the approvals queue decisions and the assignment/session views. Playwright runs 4 browser tests against a deterministic API stub: login plus reload/resume, idle lock/unlock, failed-link/reload/`409` reconciliation, and safe stale-pending discard. The browser suite proves UI transitions, not backend authorization or facility isolation. |
 
 ### 4.1 First-administrator staff link
 
@@ -258,10 +262,17 @@ request is authorized again.
   custom roles can be created, renamed, re-permissioned, cloned and deleted
   subject to `IDENTITY_ROLE_MANAGE`. The permission grid is built from the
   catalogue and marks sensitive/privileged permissions.
-- There is no pending-approval screen because no endpoint lists pending
-  assignments. The user-detail screen also cannot list existing assignments or
-  sessions because those listing endpoints do not exist. Assignment outcomes
-  remain traceable through audit.
+- `/admin/approvals` calls `GET /api/v1/identity/assignments/pending` and
+  applies `POST /{id}/approve` or `POST /{id}/reject` after confirmation. The
+  backend returns only pending grants for the caller's token facility and
+  rejects unknown or cross-facility ids.
+- The user-detail access tab calls
+  `GET /api/v1/identity/users/{id}/assignments`, so active, pending, revoked
+  and bootstrap grants remain visible. The sessions tab calls
+  `GET /api/v1/identity/users/{id}/sessions` and is shown only with
+  `IDENTITY_SESSION_REVOKE` or when the target is the signed-in account.
+- Session revocation is not exposed by the backend, so the sessions tab is
+  read-only. The approvals UI is the only new write surface in this pass.
 
 ### 4.4 Audit search
 
@@ -304,6 +315,9 @@ request is authorized again.
 - Permission checks in the UI use `useCan`, `useHasAny` or explicit
   `session.permissions.includes(...)` checks. They are convenience only; the
   backend re-checks every request.
+- `/admin/approvals` requires `IDENTITY_ROLE_APPROVE_PRIVILEGED`; the user-detail
+  sessions tab requires `IDENTITY_SESSION_REVOKE` or the target user to be the
+  current account. The backend re-applies both rules.
 - `SessionGate` routes a missing session to login, a forced password change to
   reset, and a platform account away from the facility tier (and vice versa).
 - The facility id travels in the access token as `fid`; the frontend does not
@@ -334,12 +348,12 @@ from local development.
 
 | Command | Result |
 | --- | --- |
-| `pnpm generate:api` | Regenerated `src/api/generated/openapi-types.ts` from the live backend OpenAPI document (73 Phase 0 paths). |
-| `pnpm test` | Passed: 10 files, 62 tests. |
+| `pnpm generate:api` | Regenerated `src/api/generated/openapi-types.ts` from the live backend OpenAPI document (76 Phase 0 paths). |
+| `pnpm test` | Passed: 13 files, 67 tests. |
 | `pnpm test:e2e` | Passed: 4 Playwright tests in Chromium (installed Chrome channel). |
 | `pnpm exec tsc --noEmit` | Passed. |
 | `pnpm lint` | Passed. |
-| `pnpm build` | Passed. Next.js produced the route table for 29 application pages plus `_not-found`. |
+| `pnpm build` | Passed. Next.js produced the route table for 30 application pages plus `_not-found`. |
 
 The repository declares `pnpm@10.34.5`; the commands were run with that
 package manager on Node `24.15.0`. See section 9 for the full re-verification
@@ -415,11 +429,11 @@ API stub rather than the live backend.
 - No full-stack browser test exists against the local backend with seeded
   identities. The session-bootstrap unit test and Playwright test cover
   client-side success/failure handling only.
-- The new staff, user, role and audit screens are covered by typecheck, lint,
-  production build and focused schema tests. They have not been exercised
-  manually against a live backend, and they have no Playwright coverage. Their
-  backend permission, facility-scope and audit behavior is therefore
-  **VERIFY** rather than proven by this frontend suite.
+- The new staff, user, role, approvals and audit screens are covered by
+  typecheck, lint, production build and focused schema/component tests. They
+  have not been exercised manually against a live backend, and they have no
+  Playwright coverage. Their backend permission, facility-scope and audit
+  behavior is therefore **VERIFY** rather than proven by this frontend suite.
 - No end-to-end test proves the future clinical journey, because those screens
   do not exist yet.
 
@@ -427,10 +441,11 @@ API stub rather than the live backend.
 
 ## 7. Known gaps and limitations
 
-1. **Test coverage is still limited.** 62 unit/component tests and 4 Playwright
+1. **Test coverage is still limited.** 67 unit/component tests and 4 Playwright
    browser tests run. The browser suite uses an API stub, so it does not prove
    real backend authentication, facility isolation or the clinical journey. The
-   new staff, user, role and audit screens have no Playwright coverage.
+   new staff, user, role, approvals, assignment and session screens have no
+   Playwright coverage.
 2. **Pending-link recovery is local, not server-idempotent.** The created
    `staffId` is persisted in `localStorage`, keyed by account and facility, and
    cleared once `/identity/me` reports a `staffId`. This survives a reload or
@@ -451,26 +466,24 @@ API stub rather than the live backend.
    entry, category-change or richer server-side directory filters. The
    registration wizard therefore collects no qualifications, and directory
    search is limited to the backend's `q` parameter.
-5. **The backend user directory and account actions are not facility-scoped.**
-   **CONFIRMED** in `UserDirectoryHandler` and `UserAdminController`:
-   `GET /identity/users`, `GET /identity/users/{id}` and the disable, enable,
-   unlock, password-reset and MFA-reset actions do not take a facility scope.
-   A facility administrator with the relevant permission can therefore list
-   accounts outside their facility and act on a known account id. The frontend
-   cannot correct this safely because `UserView` carries no facility id; this
-   must be fixed in the backend before production. The UI gates the screens and
-   actions by permission but does not claim facility isolation.
-6. **Several approved administration surfaces are blocked by missing
-   endpoints.** There is no pending-assignment listing, so the approvals screen
-   is not built. The user-detail screen cannot list existing assignments or
-   sessions, and the UI does not offer approve/reject/revoke forms because it
-   has no way to discover the assignment ids those endpoints require. Platform
-   account administration is deferred by the backend.
+5. **Facility-scope enforcement is a backend guarantee, not a frontend test.**
+   Backend `0c16940` scopes the user directory, account actions, pending
+   approvals, per-user assignments and sessions to the caller's token facility,
+   and the UI gates the screens by permission. This repository still has no
+   integration test that proves cross-facility denial; that evidence belongs to
+   the backend suite. The frontend must not be treated as the isolation
+   boundary.
+6. **A few approved administration surfaces remain blocked.** Session
+   revocation has no backend `DELETE` endpoint, so the sessions tab is
+   read-only. Platform account administration is deferred by the backend.
+   Custom-role update/delete still lack a caller-facility check, so the role
+   editor must not be relied on for cross-facility isolation until that backend
+   follow-up lands.
 7. **The README route table is older than the app.** It lists 11 routes and
-   calls `/platform` a Phase 0.10 stub. The current tree has 29 application
-   pages, including the staff, user, role and audit administration screens.
-   This status file is the current inventory; the README route table should be
-   refreshed separately.
+   calls `/platform` a Phase 0.10 stub. The current tree has 30 application
+   pages, including the staff, user, role, approvals and audit administration
+   screens. This status file is the current inventory; the README route table
+   should be refreshed separately.
 8. **Facility names are not in the session payload.** The `Session` type
    carries ids, permissions and account type, not facility display names, so
    parts of the shell show a short facility id. **CONFIRMED** in
@@ -486,7 +499,7 @@ API stub rather than the live backend.
     expose Phase 1 contracts.** `pnpm generate:api` regenerates
     `src/api/generated/openapi-types.ts` from
     `http://localhost:8080/api-docs`. The checked-in document currently
-    contains 73 Phase 0 paths and no patient, visit, clinical or billing
+    contains 76 Phase 0 paths and no patient, visit, clinical or billing
     endpoints. Phase 1 frontend work must import these generated types rather
     than hand-writing contract clones, and the file must be regenerated after
     the backend exposes each Phase 1 endpoint. The current generated file is
@@ -507,19 +520,19 @@ API stub rather than the live backend.
 ## 8. Next step
 
 Before widening the frontend into Phase 1, verify the new administration
-surface against a live backend and close the backend gaps that block the
-remaining Phase 0 screens:
+surface against a live backend and close the remaining backend gaps:
 
 1. Exercise the staff directory, registration, detail actions, user actions,
-   role editor/assignment and audit search against backend `192e935` with at
-   least two facilities. Record the result here. This is the missing manual or
-   full-stack evidence for the new screens.
-2. Fix the backend user directory and account-action facility scope before
-   relying on the user-administration screen in production. The frontend cannot
-   compensate for a global account list.
-3. Add the backend listing endpoints needed for pending-assignment approval and
-   for a user's existing assignments and sessions. Only then build those
-   remaining administration screens.
+   role editor/assignment, approvals queue, user-detail assignment history,
+   sessions tab and audit search against backend `0c16940` with at least two
+   facilities. Record the result here. This is the missing manual or full-stack
+   evidence for the new screens.
+2. Backend `0c16940` closes the user-directory, account-action, pending-queue
+   and per-user assignment/session scope gaps. Two identity isolation
+   follow-ups remain: session revocation has no endpoint, and custom-role
+   update/delete still need a caller-facility check. Close them before a pilot.
+3. Add session-revocation controls to the user-detail sessions tab only after
+   the backend exposes the command; do not simulate revocation in the UI.
 4. A safe stale-pending discard flow is implemented and covered by component
    and browser tests. Optional remaining hardening: add a backend-supported
    idempotency key if recovery across browsers or cleared site data is
@@ -591,20 +604,26 @@ Manual smoke path:
    account, issue a password-reset token and assign a facility role. Confirm
    `/admin/roles` shows templates and custom roles, and that a template is
    read-only.
-9. Open `/admin/audit`, filter by stream and date range, open an event detail
-   and confirm `changeSet` is shown as opaque text. Confirm `/admin/users/[id]`
-   activity uses the same audit data.
-10. Sign in as a platform account and confirm `/platform` and
+9. Assign a privileged role and confirm the grant appears at
+   `/admin/approvals`; approve it from a second account and confirm it leaves
+   the queue. Open the target user's access tab and confirm the active grant
+   appears; with `IDENTITY_SESSION_REVOKE` (or on your own account), open the
+   sessions tab and confirm the current-session marker.
+10. Open `/admin/audit`, filter by stream and date range, open an event detail
+    and confirm `changeSet` is shown as opaque text. Confirm `/admin/users/[id]`
+    activity uses the same audit data.
+11. Sign in as a platform account and confirm `/platform` and
     `/platform/facilities` contain no patient or clinical data.
-11. Repeat with a facility that the user is not assigned to and confirm the
-    backend denies or returns no data. Pay particular attention to the known
-    global user-directory gap in section 7.5. This is a backend test, not a UI
+12. Repeat with a facility that the user is not assigned to and confirm the
+    backend denies or returns no data. Pay particular attention to the
+    approvals queue, assignment history and sessions tab, which backend
+    `0c16940` scopes to the token facility. This is a backend test, not a UI
     test.
 
 `pnpm test` covers session bootstrap, session-gate routing, navigation
 permissions, idle timeout/lock, pending-link storage, staff onboarding
-validation, role/assignment date mapping, date-only formatting and the
-staff-link retry/`409` states. `pnpm test:e2e` drives the existing login,
-idle-lock and staff-link flows in Chrome against the API stub. Neither replaces
-the backend checks or the live manual smoke path above, and a green typecheck,
-lint and build does **not** prove the manual flows.
+validation, role/assignment date mapping, date-only formatting, approvals
+decisions and the assignment/session views. `pnpm test:e2e` drives the existing
+login, idle-lock and staff-link flows in Chrome against the API stub. Neither
+replaces the backend checks or the live manual smoke path above, and a green
+typecheck, lint and build does **not** prove the manual flows.

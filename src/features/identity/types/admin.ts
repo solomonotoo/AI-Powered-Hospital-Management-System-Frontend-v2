@@ -3,6 +3,8 @@
 // views only: no password hashes, MFA secrets or session tokens live in
 // any of these shapes.
 
+import type { components } from "@/api/generated/openapi-types";
+
 export const ACCOUNT_TYPES = ["PLATFORM", "STAFF"] as const;
 export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
@@ -109,3 +111,11 @@ export interface UserListParams {
   page?: number;
   size?: number;
 }
+
+// New admin reads are generated-contract-backed. The generated schemas
+// mark fields optional; the API layer normalizes the paged envelope and
+// the components apply explicit fallbacks for nullable values.
+export type PendingAssignmentView =
+  components["schemas"]["PendingAssignmentView"];
+export type UserAssignmentView = components["schemas"]["UserAssignmentView"];
+export type UserSessionView = components["schemas"]["UserSessionView"];

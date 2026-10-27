@@ -6,6 +6,8 @@ import {
   enableUser,
   getUser,
   inviteUser,
+  listUserAssignments,
+  listUserSessions,
   listUsers,
   resetUserMfa,
   resetUserPassword,
@@ -19,6 +21,10 @@ export const userQueryKeys = {
     [...userQueryKeys.all, "list", params] as const,
   detail: (userId: string) =>
     [...userQueryKeys.all, "detail", userId] as const,
+  assignments: (userId: string, params: UserListParams) =>
+    [...userQueryKeys.all, "assignments", userId, params] as const,
+  sessions: (userId: string, params: UserListParams) =>
+    [...userQueryKeys.all, "sessions", userId, params] as const,
 };
 
 export function useUsers(params: UserListParams, enabled = true) {
@@ -36,6 +42,32 @@ export function useUser(userId: string, enabled = true) {
     queryFn: () => getUser(userId),
     enabled: enabled && userId.length > 0,
     staleTime: 30_000,
+  });
+}
+
+export function useUserAssignments(
+  userId: string,
+  params: UserListParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: userQueryKeys.assignments(userId, params),
+    queryFn: () => listUserAssignments(userId, params),
+    enabled: enabled && userId.length > 0,
+    staleTime: 15_000,
+  });
+}
+
+export function useUserSessions(
+  userId: string,
+  params: UserListParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: userQueryKeys.sessions(userId, params),
+    queryFn: () => listUserSessions(userId, params),
+    enabled: enabled && userId.length > 0,
+    staleTime: 15_000,
   });
 }
 

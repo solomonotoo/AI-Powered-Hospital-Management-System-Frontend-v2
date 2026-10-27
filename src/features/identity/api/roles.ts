@@ -1,13 +1,17 @@
+import type { components } from "@/api/generated/openapi-types";
 import { api } from "@/lib/http";
+import { normalizePaged, type PagedResponse } from "@/lib/paged";
 import type {
   AssignRoleInput,
   AssignRoleResult,
   CloneRoleInput,
   CreateRoleInput,
+  PendingAssignmentView,
   PermissionView,
   RoleTier,
   RoleView,
   UpdateRoleInput,
+  UserListParams,
 } from "../types/admin";
 
 // Role administration (blueprint 8.6). Roles are definitions; a role
@@ -71,4 +75,35 @@ export async function assignRole(
     input,
   );
   return data;
+}
+
+/** Pending privileged grants at the caller's token facility. */
+export async function listPendingAssignments(
+  params: UserListParams = {},
+): Promise<PagedResponse<PendingAssignmentView>> {
+  const { data } = await api.get<
+    components["schemas"]["PagedResponsePendingAssignmentView"]
+  >("/api/v1/identity/assignments/pending", {
+    params: {
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  });
+  return normalizePaged(data);
+}
+
+export async function approveAssignment(
+  assignmentId: string,
+): Promise<void> {
+  await api.post(
+    `/api/v1/identity/assignments/${assignmentId}/approve`,
+  );
+}
+
+export async function rejectAssignment(
+  assignmentId: string,
+): Promise<void> {
+  await api.post(
+    `/api/v1/identity/assignments/${assignmentId}/reject`,
+  );
 }

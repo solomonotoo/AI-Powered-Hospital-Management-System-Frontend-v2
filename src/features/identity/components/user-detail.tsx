@@ -73,6 +73,8 @@ import {
   type UserView,
 } from "../types/admin";
 import { TokenReveal } from "./token-reveal";
+import { UserAssignments } from "./user-assignments";
+import { UserSessions } from "./user-sessions";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -455,8 +457,7 @@ function AssignRoleCard({ user }: { user: UserView }) {
         </CardTitle>
         <CardDescription>
           The assignment is scoped to this facility. Privileged roles require a
-          second approver; the current API does not list existing assignments
-          on this screen, so changes are traceable through audit.
+          second approver. Existing assignments are listed below.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -701,6 +702,9 @@ function UserActivity({ user }: { user: UserView }) {
 
 export function UserDetail({ user }: { user: UserView }) {
   const canReadAudit = useCan("AUDIT_READ");
+  const canRevokeSessions = useCan("IDENTITY_SESSION_REVOKE");
+  const session = useSession().data;
+  const canReadSessions = canRevokeSessions || session?.userId === user.id;
 
   return (
     <div className="space-y-6">
@@ -739,6 +743,9 @@ export function UserDetail({ user }: { user: UserView }) {
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="access">Access</TabsTrigger>
+          {canReadSessions && (
+            <TabsTrigger value="sessions">Sessions</TabsTrigger>
+          )}
           {canReadAudit && <TabsTrigger value="activity">Activity</TabsTrigger>}
         </TabsList>
 
@@ -749,16 +756,14 @@ export function UserDetail({ user }: { user: UserView }) {
 
         <TabsContent value="access" className="mt-4 space-y-4">
           <AssignRoleCard user={user} />
-          <Alert>
-            <AlertTitle>Role listings are not available yet</AlertTitle>
-            <AlertDescription>
-              The current backend exposes role definitions and assignment
-              commands, but no per-user assignment list. Existing assignments
-              can be reviewed through audit or the approvals workflow when that
-              endpoint lands.
-            </AlertDescription>
-          </Alert>
+          <UserAssignments userId={user.id} />
         </TabsContent>
+
+        {canReadSessions && (
+          <TabsContent value="sessions" className="mt-4">
+            <UserSessions userId={user.id} />
+          </TabsContent>
+        )}
 
         {canReadAudit && (
           <TabsContent value="activity" className="mt-4">

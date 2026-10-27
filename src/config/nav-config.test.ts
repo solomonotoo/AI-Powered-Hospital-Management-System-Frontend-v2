@@ -56,10 +56,16 @@ describe("isNavItemAllowed", () => {
     expect(item("Staff").permissions).toEqual(["STAFF_READ"]);
     expect(item("Users").permissions).toEqual(["IDENTITY_USER_READ"]);
     expect(item("Roles").permissions).toEqual(["IDENTITY_ROLE_READ"]);
+    expect(item("Approvals").permissions).toEqual([
+      "IDENTITY_ROLE_APPROVE_PRIVILEGED",
+    ]);
     expect(item("Audit").permissions).toEqual(["AUDIT_READ"]);
 
     expect(
       isNavItemAllowed(item("Staff"), ["IDENTITY_USER_READ"]),
+    ).toBe(false);
+    expect(
+      isNavItemAllowed(item("Approvals"), ["IDENTITY_ROLE_READ"]),
     ).toBe(false);
   });
 });

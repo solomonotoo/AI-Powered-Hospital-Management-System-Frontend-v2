@@ -1,8 +1,8 @@
 # Frontend Implementation Status
 
 Last verified: **2026-10-27**, branch `feature/admin-foundation-screens`
-(on top of `e9e8855`), against backend `0c16940`
-(`feature/identity-admin-read-endpoints`).
+(on top of `e9e8855`), against backend `bcfebe6`
+(`fix/identity-role-read-scope`, on top of the user/role facility-scope work).
 
 Verification in this pass: `pnpm test` (13 files, 67 tests),
 `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` (30 application pages
@@ -467,18 +467,16 @@ API stub rather than the live backend.
    registration wizard therefore collects no qualifications, and directory
    search is limited to the backend's `q` parameter.
 5. **Facility-scope enforcement is a backend guarantee, not a frontend test.**
-   Backend `0c16940` scopes the user directory, account actions, pending
-   approvals, per-user assignments and sessions to the caller's token facility,
-   and the UI gates the screens by permission. This repository still has no
+   Backend `bcfebe6` scopes the user directory, account actions, pending
+   approvals, per-user assignments and sessions, and role definition
+   reads/create/update/clone/delete to the caller's token facility and tier.
+   The UI gates the screens by permission. This repository still has no
    integration test that proves cross-facility denial; that evidence belongs to
    the backend suite. The frontend must not be treated as the isolation
    boundary.
 6. **A few approved administration surfaces remain blocked.** Session
    revocation has no backend `DELETE` endpoint, so the sessions tab is
    read-only. Platform account administration is deferred by the backend.
-   Custom-role update/delete still lack a caller-facility check, so the role
-   editor must not be relied on for cross-facility isolation until that backend
-   follow-up lands.
 7. **The README route table is older than the app.** It lists 11 routes and
    calls `/platform` a Phase 0.10 stub. The current tree has 30 application
    pages, including the staff, user, role, approvals and audit administration
@@ -524,13 +522,14 @@ surface against a live backend and close the remaining backend gaps:
 
 1. Exercise the staff directory, registration, detail actions, user actions,
    role editor/assignment, approvals queue, user-detail assignment history,
-   sessions tab and audit search against backend `0c16940` with at least two
+   sessions tab and audit search against backend `bcfebe6` with at least two
    facilities. Record the result here. This is the missing manual or full-stack
    evidence for the new screens.
-2. Backend `0c16940` closes the user-directory, account-action, pending-queue
-   and per-user assignment/session scope gaps. Two identity isolation
-   follow-ups remain: session revocation has no endpoint, and custom-role
-   update/delete still need a caller-facility check. Close them before a pilot.
+2. Backend `bcfebe6` closes the user-directory, account-action, pending-queue,
+   per-user assignment/session and role-definition scope gaps. The remaining
+   identity isolation follow-up is session revocation, which has no endpoint;
+   platform account administration is still deferred. Close revocation before
+   a pilot.
 3. Add session-revocation controls to the user-detail sessions tab only after
    the backend exposes the command; do not simulate revocation in the UI.
 4. A safe stale-pending discard flow is implemented and covered by component
@@ -616,9 +615,9 @@ Manual smoke path:
     `/platform/facilities` contain no patient or clinical data.
 12. Repeat with a facility that the user is not assigned to and confirm the
     backend denies or returns no data. Pay particular attention to the
-    approvals queue, assignment history and sessions tab, which backend
-    `0c16940` scopes to the token facility. This is a backend test, not a UI
-    test.
+    approvals queue, assignment history, sessions tab and role editor, which
+    backend `bcfebe6` scopes to the token facility and tier. This is a backend
+    test, not a UI test.
 
 `pnpm test` covers session bootstrap, session-gate routing, navigation
 permissions, idle timeout/lock, pending-link storage, staff onboarding

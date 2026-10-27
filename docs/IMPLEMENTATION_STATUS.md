@@ -1,12 +1,14 @@
 # Frontend Implementation Status
 
-Last verified: **2026-10-26**, branch `feature/admin-foundation-screens`,
-application commit `d6fcfd1`, against backend `192e935` (`main`).
+Last verified: **2026-10-27**, branch `feature/admin-foundation-screens`
+(on top of `31784ae`), against backend `192e935` (`main`).
 
 Verification in this pass: `pnpm test` (10 files, 62 tests),
 `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` (29 application pages
 plus the framework `_not-found` route), and `pnpm test:e2e` (4 Playwright
-browser tests) all passed. The browser suite drives the real Next.js UI
+browser tests) all passed. The OpenAPI contract was regenerated with
+`pnpm generate:api` into `src/api/generated/openapi-types.ts`; it currently
+contains 73 Phase 0 paths. The browser suite drives the real Next.js UI
 against a deterministic in-test API stub; it does not use seeded credentials
 or the local database. The first-administrator staff-link flow was exercised
 manually in an earlier pass. The new administration screens have not yet been
@@ -67,6 +69,9 @@ permissions and audit. This repository only consumes those contracts.
   installed Google Chrome channel instead of downloading a bundled browser.
 - `pnpm@10.34.5` declared as the package manager; `pnpm-lock.yaml` is checked
   in.
+- `openapi-typescript` generated contract types in
+  `src/api/generated/openapi-types.ts`, regenerated with `pnpm generate:api`
+  against the backend OpenAPI document.
 
 The app currently covers the **late Phase 0 frontend shell and administration
 foundation**:
@@ -329,6 +334,7 @@ from local development.
 
 | Command | Result |
 | --- | --- |
+| `pnpm generate:api` | Regenerated `src/api/generated/openapi-types.ts` from the live backend OpenAPI document (73 Phase 0 paths). |
 | `pnpm test` | Passed: 10 files, 62 tests. |
 | `pnpm test:e2e` | Passed: 4 Playwright tests in Chromium (installed Chrome channel). |
 | `pnpm exec tsc --noEmit` | Passed. |
@@ -476,9 +482,15 @@ API stub rather than the live backend.
     (and sends MFA accounts to `/mfa`) rather than resuming the existing token.
     It does not call logout before re-login, so the old session is left to its
     normal expiry.
-11. **No generated OpenAPI types are checked in.** The `generate:api` script
-    targets a backend `api-docs` endpoint, but `src/lib/api/generated` is
-    absent; feature types are handwritten. Drift must be caught by review.
+11. **Generated OpenAPI types are checked in, but the backend does not yet
+    expose Phase 1 contracts.** `pnpm generate:api` regenerates
+    `src/api/generated/openapi-types.ts` from
+    `http://localhost:8080/api-docs`. The checked-in document currently
+    contains 73 Phase 0 paths and no patient, visit, clinical or billing
+    endpoints. Phase 1 frontend work must import these generated types rather
+    than hand-writing contract clones, and the file must be regenerated after
+    the backend exposes each Phase 1 endpoint. The current generated file is
+    not a Phase 1 contract.
 12. **No offline or low-bandwidth packaging work.** Queue polling, offline
     resilience and on-premise packaging are later-phase concerns.
 13. **No patient or clinical privacy surfaces exist yet.** Consequently the
@@ -517,7 +529,9 @@ remaining Phase 0 screens:
    test suite.
 6. Then proceed to the Phase 1 OPD journey in the order defined by the
    blueprint. Do not pull Phase 2+ screens forward without an explicit
-   decision.
+   decision. Phase 1 screen contracts must import
+   `src/api/generated/openapi-types.ts`; regenerate it after the backend
+   exposes each endpoint.
 7. Refresh the README route table and link it to this status file.
 
 ---
@@ -540,6 +554,7 @@ Commands:
 
 ```bash
 pnpm install
+pnpm generate:api   # requires the backend on http://localhost:8080
 pnpm test
 pnpm test:e2e
 pnpm exec tsc --noEmit

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Controller,
   useFieldArray,
@@ -87,9 +87,12 @@ export function StaffRegistrationForm() {
   const canReadFacility = useCan("FACILITY_READ");
   const units = useCurrentFacilityUnits(canReadFacility);
   const [step, setStep] = useState(0);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [createdStaffId, setCreatedStaffId] = useState<string | null>(null);
   const [postingPending, setPostingPending] = useState(false);
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const wizardTopRef = useRef<HTMLDivElement>(null);
+  const skippedInitialScroll = useRef(false);
 
   const {
     control,
@@ -123,9 +126,22 @@ export function StaffRegistrationForm() {
     }
   }, [category, requiresLicence, getValues, setValue]);
 
+  useEffect(() => {
+    // A validation failure near the bottom of a long step can leave the
+    // message off-screen. Move the operator back to the step heading so the
+    // blocked state is always visible.
+    if (!skippedInitialScroll.current) {
+      skippedInitialScroll.current = true;
+      return;
+    }
+    wizardTopRef.current?.scrollIntoView({ block: "start" });
+  }, [step]);
+
   const next = async () => {
-    if (step === 1) {
+    if (step === 1 && !requiresLicence) {
       // A blank optional licence row must not block a non-clinical category.
+      // Licensed categories keep every row: deleting the row the operator is
+      // meant to fill would erase the very fields that explain the block.
       const current = getValues("licences");
       const cleaned = current.filter((licence) => !isBlankLicence(licence));
       if (cleaned.length !== current.length) {
@@ -136,7 +152,12 @@ export function StaffRegistrationForm() {
       keyof StaffRegistrationFormValues
     >;
     const valid = await trigger(fields);
-    if (valid) setStep((current) => Math.min(current + 1, 2));
+    if (valid) {
+      setStepError(null);
+      setStep((current) => Math.min(current + 1, 2));
+    } else {
+      setStepError("Check the highlighted fields below, then try again.");
+    }
   };
 
   const submit = handleSubmit(async (values) => {
@@ -206,6 +227,7 @@ export function StaffRegistrationForm() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div ref={wizardTopRef} />
         <ol className="grid gap-2 sm:grid-cols-3">
           {STAFF_REGISTRATION_STEPS.map((label, index) => (
             <li
@@ -228,6 +250,14 @@ export function StaffRegistrationForm() {
               <AlertTriangle aria-hidden="true" />
               <AlertTitle>Could not register staff</AlertTitle>
               <AlertDescription>{errors.root.server.message}</AlertDescription>
+            </Alert>
+          )}
+
+          {stepError && (
+            <Alert variant="destructive">
+              <AlertTriangle aria-hidden="true" />
+              <AlertTitle>This step is not complete</AlertTitle>
+              <AlertDescription>{stepError}</AlertDescription>
             </Alert>
           )}
 
@@ -657,7 +687,10 @@ export function StaffRegistrationForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setStep((current) => Math.max(0, current - 1))}
+              onClick={() => {
+                setStepError(null);
+                setStep((current) => Math.max(0, current - 1));
+              }}
               disabled={step === 0 || pending}
             >
               <ArrowLeft aria-hidden="true" />

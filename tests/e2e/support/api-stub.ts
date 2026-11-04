@@ -242,6 +242,11 @@ export async function installApiStub(page: Page): Promise<ApiStub> {
       return;
     }
 
+    if (method === "GET" && path === "/api/v1/facilities/current/units") {
+      await respond(200, []);
+      return;
+    }
+
     if (method === "GET" && path === "/api/v1/configuration/sequences") {
       await respond(200, SEQUENCES);
       return;

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
 import {
   Controller,
   useForm,
@@ -233,6 +233,17 @@ export function RegisterFacilityWizard() {
       return;
     }
     void submit(event);
+  };
+
+  // WHY preventDefault: the Next and Register buttons sit in the same
+  // React position, so React reuses the DOM node and flips type="button"
+  // to type="submit" while the click is still being activated. The
+  // browser then runs the click's default action against the new submit
+  // button and registers the facility before the review step can be
+  // read. Cancelling the click keeps the step change a pure navigation.
+  const onNextClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    void nextStep();
   };
 
   return (
@@ -607,12 +618,17 @@ export function RegisterFacilityWizard() {
             </Button>
 
             {step < STEPS.length - 1 ? (
-              <Button type="button" onClick={nextStep} disabled={pending}>
+              <Button
+                key="next"
+                type="button"
+                onClick={onNextClick}
+                disabled={pending}
+              >
                 Next
                 <ArrowRight aria-hidden="true" />
               </Button>
             ) : (
-              <Button type="submit" disabled={pending}>
+              <Button key="register" type="submit" disabled={pending}>
                 {pending && <Loader2 aria-hidden="true" className="animate-spin" />}
                 {pending ? "Registering…" : "Register facility"}
               </Button>

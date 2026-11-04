@@ -108,6 +108,28 @@ describe("StaffRegistrationForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Initial posting (optional)")).toBeInTheDocument();
     });
+    // Advancing to the review step must never create the record: the
+    // click that moved the wizard forward must not activate the register
+    // button that replaced Next.
+    expect(mocks.onboard).not.toHaveBeenCalled();
+    expect(mocks.push).not.toHaveBeenCalled();
+  });
+
+  it("treats Enter on an earlier step as navigation, not a save", async () => {
+    render(<StaffRegistrationForm />);
+
+    await completePersonalDetails();
+    fireEvent.click(screen.getByLabelText("Category"));
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Records officer" }),
+    );
+
+    fireEvent.submit(document.querySelector("form")!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Initial posting (optional)")).toBeInTheDocument();
+    });
+    expect(mocks.onboard).not.toHaveBeenCalled();
   });
 
   it("advances when a non-licensed category leaves the optional licence blank", async () => {

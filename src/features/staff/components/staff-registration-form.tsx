@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import {
   Controller,
   useFieldArray,
@@ -214,6 +214,26 @@ export function StaffRegistrationForm() {
     }
   });
 
+  // Enter and the Next button must never save before the posting and
+  // review step. Only the review step's submit button creates the record.
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (step < 2) {
+      event.preventDefault();
+      void next();
+      return;
+    }
+    void submit(event);
+  };
+
+  // WHY preventDefault: React reuses the footer button node between
+  // steps, flipping type="button" to type="submit". Without cancelling
+  // the click, the browser activates the new submit button and registers
+  // the staff member before the review step is ever read.
+  const onNextClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    void next();
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -244,7 +264,7 @@ export function StaffRegistrationForm() {
           ))}
         </ol>
 
-        <form noValidate onSubmit={submit} className="space-y-5">
+        <form noValidate onSubmit={onFormSubmit} className="space-y-5">
           {errors.root?.server?.message && (
             <Alert variant="destructive">
               <AlertTriangle aria-hidden="true" />
@@ -701,12 +721,17 @@ export function StaffRegistrationForm() {
                 <Link href="/admin/staff">Cancel</Link>
               </Button>
               {step < 2 ? (
-                <Button type="button" onClick={next} disabled={pending}>
+                <Button
+                  key="next"
+                  type="button"
+                  onClick={onNextClick}
+                  disabled={pending}
+                >
                   Next
                   <ArrowRight aria-hidden="true" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={pending}>
+                <Button key="register" type="submit" disabled={pending}>
                   {pending ? (
                     <Loader2 aria-hidden="true" className="animate-spin" />
                   ) : (

@@ -35,7 +35,10 @@ function FieldError({ message }: { message?: string }) {
 
 export function InviteUserForm() {
   const invite = useInviteUser();
-  const [token, setToken] = useState<string | null>(null);
+  const [created, setCreated] = useState<{
+    token: string;
+    emailSent: boolean;
+  } | null>(null);
   const {
     register,
     handleSubmit,
@@ -51,9 +54,16 @@ export function InviteUserForm() {
   const submit = handleSubmit(async (values) => {
     try {
       const result = await invite.mutateAsync(values);
-      setToken(result.invitationToken);
+      setCreated({
+        token: result.invitationToken,
+        emailSent: Boolean(result.emailSent),
+      });
       reset({ email: "" });
-      toast.success("Invitation created");
+      toast.success(
+        result.emailSent
+          ? "Invitation email sent"
+          : "Invitation created; email not sent",
+      );
     } catch (error) {
       const problem = problemOf(error);
       let firstInvalid = false;
@@ -82,11 +92,15 @@ export function InviteUserForm() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {token && (
+        {created && (
           <TokenReveal
-            token={token}
-            title="Invitation created"
-            description="Send this single-use token to the invitee through an approved channel. It will not be shown again."
+            token={created.token}
+            title={created.emailSent ? "Invitation created" : "Email not sent"}
+            description={
+              created.emailSent
+                ? "An invitation email was sent to the address. If it does not arrive, share this single-use token through an approved channel. It will not be shown again."
+                : "Email delivery is not configured, so nothing was sent. Share this single-use token with the invitee through an approved channel. It will not be shown again."
+            }
           />
         )}
 

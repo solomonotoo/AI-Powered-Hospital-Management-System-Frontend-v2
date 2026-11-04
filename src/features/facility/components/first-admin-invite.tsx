@@ -24,9 +24,9 @@ import {
 import { fieldErrorsOf, problemOf } from "@/lib/http";
 
 // Day-0 bootstrap: exactly one FACILITY_ADMIN grant, created atomically
-// with the INVITED staff account. The response token is the only copy
-// the platform owner gets until the notification module exists, so it
-// stays in React state (never storage, never logs) and is shown once.
+// with the INVITED staff account. The backend emails the claim link when
+// a channel is configured; the response token remains the fallback copy,
+// so it stays in React state (never storage, never logs) and is shown once.
 export function FirstAdminInvite({
   facilityId,
   facilityName,
@@ -133,9 +133,15 @@ export function FirstAdminInvite({
                 aria-hidden="true"
                 className="text-emerald-600 dark:text-emerald-400"
               />
-              <AlertTitle>Administrator invited</AlertTitle>
+              <AlertTitle>
+                {provisioned.emailSent
+                  ? "Administrator invited"
+                  : "Administrator provisioned — email not sent"}
+              </AlertTitle>
               <AlertDescription>
-                Send this single-use link to the administrator over a trusted channel.
+                {provisioned.emailSent
+                  ? "An invitation email was sent to the administrator. If it does not arrive, share this single-use link over a trusted channel."
+                  : "Email delivery is not configured or failed, so nothing was sent. Share this single-use link with the administrator over a trusted channel."}{" "}
                 They choose their own password on the accept screen.
               </AlertDescription>
             </Alert>

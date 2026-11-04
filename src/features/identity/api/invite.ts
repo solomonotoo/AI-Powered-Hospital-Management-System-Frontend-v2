@@ -28,6 +28,8 @@ export interface FirstAdminResponse {
   userId: string;
   assignmentId: string;
   invitationToken: string;
+  /** False when no SMTP channel is configured or the send failed. */
+  emailSent: boolean;
 }
 
 export async function inviteFirstFacilityAdmin(

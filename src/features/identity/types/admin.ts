@@ -48,6 +48,11 @@ export interface InviteUserInput {
 /** Invite and admin-reset both return a one-time token. */
 export interface InvitationTokenView {
   invitationToken: string;
+  /**
+   * True when the invitation email was delivered. Admin password resets
+   * do not use the email channel yet, so they always report false.
+   */
+  emailSent: boolean;
 }
 
 export const ROLE_TIERS = ["PLATFORM", "FACILITY"] as const;

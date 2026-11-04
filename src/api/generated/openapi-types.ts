@@ -1365,6 +1365,7 @@ export interface components {
         };
         InviteUserResponse: {
             invitationToken?: string;
+            emailSent?: boolean;
         };
         InviteUserRequest: {
             /** Format: email */
@@ -1391,6 +1392,7 @@ export interface components {
             /** Format: uuid */
             assignmentId?: string;
             invitationToken?: string;
+            emailSent?: boolean;
         };
         ReviewBreakGlassRequest: {
             /** @enum {string} */

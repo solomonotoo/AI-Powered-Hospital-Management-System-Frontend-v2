@@ -231,6 +231,13 @@ export interface AssignStaffUnitInput {
   primary: boolean;
 }
 
+/** POST /api/v1/staff/{id}/assignments/end (mirrors EndPostingRequest). */
+export interface EndStaffPostingInput {
+  unitId: string;
+  end: string;
+  reason: string;
+}
+
 /** POST /api/v1/staff/{id}/status (mirrors ChangeEmploymentStatusRequest). */
 export interface ChangeEmploymentStatusInput {
   status: EmploymentStatus;

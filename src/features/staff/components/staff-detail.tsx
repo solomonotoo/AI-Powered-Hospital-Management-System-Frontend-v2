@@ -47,12 +47,15 @@ import {
   EMPLOYMENT_STATUS_LABELS,
   STAFF_CATEGORY_LABELS,
   type EmploymentStatus,
+  type StaffAssignmentView,
   type StaffDetailView,
 } from "../types";
+import { StaffEndPostingDialog } from "./staff-end-posting-dialog";
 import { StaffLicenceDialog } from "./staff-licence-dialog";
 import { StaffPostingDialog } from "./staff-posting-dialog";
 import { StaffProfileForm } from "./staff-profile-form";
 import { StaffStatusDialog } from "./staff-status-dialog";
+import { StaffUnlinkUserDialog } from "./staff-unlink-user-dialog";
 
 function statusVariant(status: string) {
   if (status === "ACTIVE") return "secondary" as const;
@@ -222,6 +225,7 @@ function PostingSection({
   const canAssign = useCan("STAFF_ASSIGN");
   const canReadFacility = useCan("FACILITY_READ");
   const [open, setOpen] = useState(false);
+  const [endTarget, setEndTarget] = useState<StaffAssignmentView | null>(null);
 
   const unitNames = new Map(
     units.map((unit) => [unit.id, `${unit.name} (${unit.code})`]),
@@ -267,6 +271,7 @@ function PostingSection({
                   <TableHead>To</TableHead>
                   <TableHead>Primary</TableHead>
                   <TableHead>State</TableHead>
+                  {canAssign && <TableHead>Action</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -291,6 +296,22 @@ function PostingSection({
                         {assignment.open ? "Open" : "Closed"}
                       </Badge>
                     </TableCell>
+                    {canAssign && (
+                      <TableCell>
+                        {assignment.open ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEndTarget(assignment)}
+                          >
+                            Close
+                          </Button>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -310,6 +331,19 @@ function PostingSection({
         open={open}
         onOpenChange={setOpen}
       />
+      <StaffEndPostingDialog
+        staffId={staff.id}
+        assignment={endTarget}
+        unitName={
+          endTarget
+            ? (unitNames.get(endTarget.unitId) ?? endTarget.unitId)
+            : ""
+        }
+        open={endTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setEndTarget(null);
+        }}
+      />
     </Card>
   );
 }
@@ -321,6 +355,7 @@ function AccessSection({ staff }: { staff: StaffDetailView }) {
   const link = useLinkStaffUser();
   const [userId, setUserId] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [unlinkOpen, setUnlinkOpen] = useState(false);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -347,8 +382,9 @@ function AccessSection({ staff }: { staff: StaffDetailView }) {
           Account access
         </CardTitle>
         <CardDescription>
-          The staff record and the login account are separate. Linking is a
-          one-time operation and does not grant permissions by itself.
+          The staff record and the login account are separate. Linking does
+          not grant permissions by itself. A mistaken link can be revoked
+          with a reason so the correct account can be attached.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -358,13 +394,25 @@ function AccessSection({ staff }: { staff: StaffDetailView }) {
             <p className="mt-1 font-mono text-xs break-all text-muted-foreground">
               {staff.userId}
             </p>
-            {canReadUsers && (
-              <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link href={`/admin/users/${staff.userId}`}>
-                  Open user account
-                </Link>
-              </Button>
-            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {canReadUsers && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/admin/users/${staff.userId}`}>
+                    Open user account
+                  </Link>
+                </Button>
+              )}
+              {canUpdate && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnlinkOpen(true)}
+                >
+                  Revoke link
+                </Button>
+              )}
+            </div>
           </div>
         ) : canUpdate ? (
           <form noValidate onSubmit={submit} className="space-y-2">
@@ -408,6 +456,12 @@ function AccessSection({ staff }: { staff: StaffDetailView }) {
           </p>
         )}
       </CardContent>
+      <StaffUnlinkUserDialog
+        staffId={staff.id}
+        userId={staff.userId}
+        open={unlinkOpen}
+        onOpenChange={setUnlinkOpen}
+      />
     </Card>
   );
 }

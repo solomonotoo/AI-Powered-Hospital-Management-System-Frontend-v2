@@ -4,6 +4,7 @@ import type {
   AddStaffLicenceInput,
   AssignStaffUnitInput,
   ChangeEmploymentStatusInput,
+  EndStaffPostingInput,
   ExpiringLicenceView,
   OnboardStaffInput,
   StaffDetailView,
@@ -69,6 +70,18 @@ export async function assignStaffUnit(
   await api.post(`/api/v1/staff/${staffId}/assignments`, input);
 }
 
+/**
+ * POST /api/v1/staff/{id}/assignments/end — closes a mistaken posting
+ * with a reason. Postings are history: the row is closed, never edited or
+ * deleted, so the correct posting can be added.
+ */
+export async function endStaffPosting(
+  staffId: string,
+  input: EndStaffPostingInput,
+): Promise<void> {
+  await api.post(`/api/v1/staff/${staffId}/assignments/end`, input);
+}
+
 /** POST /api/v1/staff/{id}/status — guarded employment move with a reason. */
 export async function changeStaffEmploymentStatus(
   staffId: string,
@@ -83,6 +96,18 @@ export async function linkStaffUser(
   userId: string,
 ): Promise<void> {
   await api.post(`/api/v1/staff/${staffId}/link-user`, { userId });
+}
+
+/**
+ * POST /api/v1/staff/{id}/unlink-user — revokes a mistaken account link
+ * with a reason so the correct account can be attached. The historical
+ * pair remains in the audit stream.
+ */
+export async function unlinkStaffUser(
+  staffId: string,
+  reason: string,
+): Promise<void> {
+  await api.post(`/api/v1/staff/${staffId}/unlink-user`, { reason });
 }
 
 /** GET /api/v1/staff/licences/expiring — dashboard licence alert list. */

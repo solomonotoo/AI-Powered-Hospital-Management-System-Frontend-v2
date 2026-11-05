@@ -6,17 +6,20 @@ import {
   addStaffLicence,
   assignStaffUnit,
   changeStaffEmploymentStatus,
+  endStaffPosting,
   getStaff,
   linkStaffUser,
   listExpiringLicences,
   listStaff,
   onboardStaff,
+  unlinkStaffUser,
   updateStaff,
 } from "../api/staff";
 import type {
   AddStaffLicenceInput,
   AssignStaffUnitInput,
   ChangeEmploymentStatusInput,
+  EndStaffPostingInput,
   OnboardStaffInput,
   StaffDirectoryParams,
   UpdateStaffInput,
@@ -152,6 +155,36 @@ export function useLinkStaffUser() {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: staffQueryKeys.detail(variables.staffId),
+      });
+      void queryClient.invalidateQueries({ queryKey: sessionQueryKey });
+    },
+  });
+}
+
+/** Corrects a mistaken posting by closing it with a reason. */
+export function useEndStaffPosting(staffId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: EndStaffPostingInput) => endStaffPosting(staffId, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: staffQueryKeys.detail(staffId),
+      });
+      void queryClient.invalidateQueries({ queryKey: staffQueryKeys.all });
+    },
+  });
+}
+
+/** Revokes a mistaken account link so the correct account can be attached. */
+export function useUnlinkStaffUser(staffId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (reason: string) => unlinkStaffUser(staffId, reason),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: staffQueryKeys.detail(staffId),
       });
       void queryClient.invalidateQueries({ queryKey: sessionQueryKey });
     },

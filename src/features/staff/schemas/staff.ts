@@ -7,6 +7,7 @@ import {
   type AddStaffLicenceInput,
   type AssignStaffUnitInput,
   type ChangeEmploymentStatusInput,
+  type EndStaffPostingInput,
   type OnboardStaffInput,
   type UpdateStaffInput,
 } from "../types";
@@ -387,3 +388,36 @@ export function toChangeEmploymentStatusInput(
 ): ChangeEmploymentStatusInput {
   return { status: values.status, reason: values.reason };
 }
+
+// Correcting a mistaken posting closes it (with a reason) instead of
+// editing or deleting history. The end date may not be after today; a
+// posting that has not started is clamped to its start on the server.
+export const endPostingSchema = z.object({
+  end: isoDate("Enter a valid end date"),
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Record why this posting is being corrected")
+    .max(500, "Use 500 characters or fewer"),
+});
+
+export type EndPostingFormValues = z.infer<typeof endPostingSchema>;
+
+export function toEndPostingInput(
+  unitId: string,
+  values: EndPostingFormValues,
+): EndStaffPostingInput {
+  return { unitId, end: values.end, reason: values.reason };
+}
+
+// Revoking a mistaken staff-to-account link is audited, so the reason is
+// mandatory; the historical pair remains in the audit stream.
+export const unlinkUserSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Record why the link is being revoked")
+    .max(500, "Use 500 characters or fewer"),
+});
+
+export type UnlinkUserFormValues = z.infer<typeof unlinkUserSchema>;

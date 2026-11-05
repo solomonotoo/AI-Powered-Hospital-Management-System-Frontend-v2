@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/triage/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["amend"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/{id}": {
         parameters: {
             query?: never;
@@ -13,6 +29,22 @@ export interface paths {
         };
         get: operations["get"];
         put: operations["update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["saveDraft"];
         post?: never;
         delete?: never;
         options?: never;
@@ -61,6 +93,22 @@ export interface paths {
         };
         get?: never;
         put: operations["updateUnit"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/diagnoses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["change"];
         post?: never;
         delete?: never;
         options?: never;
@@ -132,6 +180,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list"];
+        put?: never;
+        post: operations["open"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/triage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["assignQueue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["overridePriority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/diagnoses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["record_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/consultation/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff": {
         parameters: {
             query?: never;
@@ -142,6 +318,22 @@ export interface paths {
         get: operations["search"];
         put?: never;
         post: operations["onboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/{id}/unlink-user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["unlinkUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -212,6 +404,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/{id}/assignments/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["endPosting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/{system}/{code}/deactivate": {
         parameters: {
             query?: never;
@@ -238,6 +446,134 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["importSystem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/queues/{unitId}/call-next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["callNext"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["search_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/quick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["quickRegister"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/duplicate-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["duplicateCheck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markEnteredInError"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/amend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["amend_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -539,9 +875,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
-        post: operations["register"];
+        post: operations["register_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -638,6 +974,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["goLive_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/diagnoses/{id}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["remove"];
         delete?: never;
         options?: never;
         head?: never;
@@ -836,6 +1188,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/visits/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/visits/{id}/chart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chart"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/licences/expiring": {
         parameters: {
             query?: never;
@@ -891,7 +1275,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["search_1"];
+        get: operations["search_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -907,7 +1291,71 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_1"];
+        get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/queues/{unitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["queueBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["patientHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/banner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["banner"];
         put?: never;
         post?: never;
         delete?: never;
@@ -923,7 +1371,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -939,7 +1387,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_2"];
+        get: operations["get_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1019,7 +1467,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1083,7 +1531,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_3"];
+        get: operations["get_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1211,7 +1659,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["search_2"];
+        get: operations["search_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1237,6 +1685,59 @@ export interface components {
             sessionId?: string;
             platformPrincipal?: boolean;
         };
+        AmendTriageRequest: {
+            /** @enum {string} */
+            category: "RED" | "ORANGE" | "YELLOW" | "GREEN" | "BLUE";
+            complaint?: string;
+            temperatureC?: number;
+            /** Format: int32 */
+            pulseBpm?: number;
+            /** Format: int32 */
+            respiratoryRate?: number;
+            /** Format: int32 */
+            bpSystolic?: number;
+            /** Format: int32 */
+            bpDiastolic?: number;
+            /** Format: int32 */
+            spo2Percent?: number;
+            weightKg?: number;
+            heightCm?: number;
+            /** Format: int32 */
+            painScore?: number;
+            reason: string;
+        };
+        TriageView: {
+            /** Format: uuid */
+            triageId?: string;
+            /** Format: uuid */
+            visitId?: string;
+            /** Format: int32 */
+            version?: number;
+            category?: string;
+            complaint?: string;
+            temperatureC?: number;
+            /** Format: int32 */
+            pulseBpm?: number;
+            /** Format: int32 */
+            respiratoryRate?: number;
+            /** Format: int32 */
+            bpSystolic?: number;
+            /** Format: int32 */
+            bpDiastolic?: number;
+            /** Format: int32 */
+            spo2Percent?: number;
+            weightKg?: number;
+            heightCm?: number;
+            bmi?: number;
+            /** Format: int32 */
+            painScore?: number;
+            flags?: string[];
+            /** Format: uuid */
+            recordedBy?: string;
+            /** Format: date-time */
+            recordedAt?: string;
+            amendmentReason?: string;
+        };
         UpdateStaffRequest: {
             firstName: string;
             lastName: string;
@@ -1251,6 +1752,57 @@ export interface components {
             addressCity?: string;
             addressCountry?: string;
             specialty?: string;
+        };
+        SaveNoteDraftRequest: {
+            history?: string;
+            examination?: string;
+            assessment?: string;
+            plan?: string;
+        };
+        NoteVersionView: {
+            /** Format: int32 */
+            version?: number;
+            status?: string;
+            history?: string;
+            examination?: string;
+            assessment?: string;
+            plan?: string;
+            /** Format: uuid */
+            signedBy?: string;
+            /** Format: date-time */
+            signedAt?: string;
+            amendmentReason?: string;
+        };
+        NoteView: {
+            /** Format: uuid */
+            noteId?: string;
+            /** Format: uuid */
+            visitId?: string;
+            type?: string;
+            status?: string;
+            /** Format: int32 */
+            version?: number;
+            history?: string;
+            examination?: string;
+            assessment?: string;
+            plan?: string;
+            /** Format: uuid */
+            authoredBy?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            signedBy?: string;
+            /** Format: date-time */
+            signedAt?: string;
+            amendmentReason?: string;
+            /** Format: uuid */
+            enteredInErrorBy?: string;
+            /** Format: date-time */
+            enteredInErrorAt?: string;
+            enteredInErrorReason?: string;
+            versions?: components["schemas"]["NoteVersionView"][];
         };
         UpdateRoleRequest: {
             name: string;
@@ -1283,6 +1835,35 @@ export interface components {
             /** Format: uuid */
             parentUnitId?: string;
         };
+        ChangeDiagnosisRequest: {
+            /** @enum {string} */
+            type: "PRIMARY" | "SECONDARY";
+            /** @enum {string} */
+            certainty: "PROVISIONAL" | "CONFIRMED";
+            reason: string;
+        };
+        DiagnosisView: {
+            /** Format: uuid */
+            diagnosisId?: string;
+            /** Format: uuid */
+            visitId?: string;
+            icd10Code?: string;
+            displaySnapshot?: string;
+            type?: string;
+            certainty?: string;
+            status?: string;
+            /** Format: uuid */
+            recordedBy?: string;
+            /** Format: date-time */
+            recordedAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            enteredInErrorBy?: string;
+            /** Format: date-time */
+            enteredInErrorAt?: string;
+            enteredInErrorReason?: string;
+        };
         UpdateSettingRequest: {
             value: string;
         };
@@ -1311,6 +1892,83 @@ export interface components {
         SetFeatureFlagRequest: {
             enabled: boolean;
         };
+        OpenVisitRequest: {
+            /** Format: uuid */
+            patientId: string;
+            /** @enum {string} */
+            type?: "OPD" | "EMERGENCY" | "INPATIENT" | "ANC" | "OTHER";
+            payer?: string;
+            payerMemberNumber?: string;
+            /** Format: uuid */
+            unitId: string;
+            /** Format: uuid */
+            attendingStaffId?: string;
+            chiefComplaint?: string;
+            /** @enum {string} */
+            priority?: "EMERGENCY" | "URGENT" | "ROUTINE";
+        };
+        OpenVisitResult: {
+            /** Format: uuid */
+            visitId?: string;
+            visitNumber?: string;
+        };
+        RecordTriageRequest: {
+            /** @enum {string} */
+            category: "RED" | "ORANGE" | "YELLOW" | "GREEN" | "BLUE";
+            complaint?: string;
+            temperatureC?: number;
+            /** Format: int32 */
+            pulseBpm?: number;
+            /** Format: int32 */
+            respiratoryRate?: number;
+            /** Format: int32 */
+            bpSystolic?: number;
+            /** Format: int32 */
+            bpDiastolic?: number;
+            /** Format: int32 */
+            spo2Percent?: number;
+            weightKg?: number;
+            heightCm?: number;
+            /** Format: int32 */
+            painScore?: number;
+        };
+        QueueVisitRequest: {
+            /** Format: uuid */
+            unitId: string;
+            /** @enum {string} */
+            priority?: "EMERGENCY" | "URGENT" | "ROUTINE";
+        };
+        VisitQueueResult: {
+            /** Format: uuid */
+            visitId?: string;
+            /** Format: uuid */
+            queueEntryId?: string;
+            /** Format: uuid */
+            unitId?: string;
+            ticketNumber?: string;
+            priority?: string;
+            queueStatus?: string;
+        };
+        OverridePriorityRequest: {
+            /** @enum {string} */
+            priority: "EMERGENCY" | "URGENT" | "ROUTINE";
+            reason: string;
+        };
+        RecordDiagnosisRequest: {
+            icd10Code: string;
+            /** @enum {string} */
+            type: "PRIMARY" | "SECONDARY";
+            /** @enum {string} */
+            certainty: "PROVISIONAL" | "CONFIRMED";
+        };
+        CloseVisitRequest: {
+            /** @enum {string} */
+            disposition: "DISCHARGED_HOME" | "ADMITTED" | "REFERRED_OUT" | "LAMA" | "ABSCONDED" | "DIED";
+            overrideReason?: string;
+        };
+        CancelVisitRequest: {
+            reason: string;
+        };
         LicenceRequest: {
             body: string;
             number: string;
@@ -1337,6 +1995,9 @@ export interface components {
             specialty?: string;
             licences?: components["schemas"]["LicenceRequest"][];
         };
+        UnlinkUserRequest: {
+            reason: string;
+        };
         ChangeEmploymentStatusRequest: {
             /** @enum {string} */
             status: "ACTIVE" | "ON_LEAVE" | "SUSPENDED" | "TERMINATED";
@@ -1353,6 +2014,13 @@ export interface components {
             from: string;
             primary?: boolean;
         };
+        EndPostingRequest: {
+            /** Format: uuid */
+            unitId: string;
+            /** Format: date */
+            end: string;
+            reason: string;
+        };
         CodeRow: {
             code: string;
             display: string;
@@ -1363,8 +2031,138 @@ export interface components {
             version?: string;
             entries: components["schemas"]["CodeRow"][];
         };
+        CallNextResult: {
+            /** Format: uuid */
+            visitId?: string;
+            /** Format: uuid */
+            queueEntryId?: string;
+            /** Format: uuid */
+            patientId?: string;
+            /** Format: uuid */
+            unitId?: string;
+            ticketNumber?: string;
+            priority?: string;
+            queueStatus?: string;
+            /** Format: date-time */
+            calledAt?: string;
+        };
+        IdentifierRequest: {
+            /** @enum {string} */
+            type: "GHANA_CARD" | "NHIS" | "PASSPORT" | "OTHER";
+            value: string;
+        };
+        NextOfKinRequest: {
+            name: string;
+            relationship: string;
+            phone: string;
+        };
+        RegisterPatientRequest: {
+            firstName: string;
+            lastName: string;
+            maidenName?: string;
+            preferredName?: string;
+            /** @enum {string} */
+            sex: "MALE" | "FEMALE" | "OTHER" | "UNKNOWN";
+            /** Format: date */
+            dateOfBirth?: string;
+            dateOfBirthEstimated?: boolean;
+            /** Format: int32 */
+            estimatedAge?: number;
+            phone?: string;
+            addressLine1?: string;
+            addressLine2?: string;
+            addressCity?: string;
+            addressState?: string;
+            addressPostalCode?: string;
+            addressCountry?: string;
+            identifiers?: components["schemas"]["IdentifierRequest"][];
+            nextOfKin?: components["schemas"]["NextOfKinRequest"][];
+            consentDataSharing?: boolean;
+            consentContact?: boolean;
+            consentResearch?: boolean;
+        };
+        PatientSearchRequest: {
+            query?: string;
+            mrn?: string;
+            phone?: string;
+            firstName?: string;
+            lastName?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            /** @enum {string} */
+            identifierType?: "GHANA_CARD" | "NHIS" | "PASSPORT" | "OTHER";
+            identifierValue?: string;
+        };
+        PagedResponsePatientSearchResult: {
+            content?: components["schemas"]["PatientSearchResult"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        PatientSearchResult: {
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            sex?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            dateOfBirthEstimated?: boolean;
+            phone?: string;
+            restricted?: boolean;
+            status?: string;
+        };
+        QuickRegisterPatientRequest: {
+            firstName?: string;
+            lastName?: string;
+            /** @enum {string} */
+            sex: "MALE" | "FEMALE" | "OTHER" | "UNKNOWN";
+            /** Format: date */
+            dateOfBirth?: string;
+            dateOfBirthEstimated?: boolean;
+            /** Format: int32 */
+            estimatedAge?: number;
+            phone?: string;
+        };
+        DuplicateCheckRequest: {
+            firstName?: string;
+            lastName?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            phone?: string;
+            identifiers?: components["schemas"]["IdentifierRequest"][];
+        };
+        PatientDuplicateView: {
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            sex?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            phone?: string;
+            status?: string;
+        };
+        VoidNoteRequest: {
+            reason: string;
+        };
+        AmendNoteRequest: {
+            history?: string;
+            examination?: string;
+            assessment?: string;
+            plan?: string;
+            reason: string;
+        };
         InviteUserResponse: {
             invitationToken?: string;
+            emailSent?: boolean;
         };
         InviteUserRequest: {
             /** Format: email */
@@ -1391,6 +2189,7 @@ export interface components {
             /** Format: uuid */
             assignmentId?: string;
             invitationToken?: string;
+            emailSent?: boolean;
         };
         ReviewBreakGlassRequest: {
             /** @enum {string} */
@@ -1446,6 +2245,9 @@ export interface components {
             reason?: string;
         };
         DeactivateUnitRequest: {
+            reason: string;
+        };
+        RemoveDiagnosisRequest: {
             reason: string;
         };
         SelectFacilityRequest: {
@@ -1510,6 +2312,122 @@ export interface components {
         AcceptInvitationRequest: {
             token: string;
             password: string;
+        };
+        PagedResponseVisitSummaryView: {
+            content?: components["schemas"]["VisitSummaryView"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
+        VisitSummaryView: {
+            /** Format: uuid */
+            visitId?: string;
+            visitNumber?: string;
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            type?: string;
+            status?: string;
+            /** Format: uuid */
+            currentUnitId?: string;
+            priority?: string;
+            queueStatus?: string;
+            /** Format: date-time */
+            openedAt?: string;
+            /** Format: date-time */
+            closedAt?: string;
+        };
+        QueueEntryView: {
+            /** Format: uuid */
+            queueEntryId?: string;
+            /** Format: uuid */
+            visitId?: string;
+            visitNumber?: string;
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            ticketNumber?: string;
+            priority?: string;
+            queueStatus?: string;
+            visitStatus?: string;
+            /** Format: date-time */
+            queuedAt?: string;
+            /** Format: date-time */
+            calledAt?: string;
+            /** Format: int64 */
+            waitedSeconds?: number;
+        };
+        VisitDetailView: {
+            /** Format: uuid */
+            visitId?: string;
+            visitNumber?: string;
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            sex?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            /** Format: int32 */
+            age?: number;
+            restricted?: boolean;
+            type?: string;
+            payer?: string;
+            payerMemberNumber?: string;
+            /** Format: uuid */
+            currentUnitId?: string;
+            /** Format: uuid */
+            attendingStaffId?: string;
+            chiefComplaint?: string;
+            status?: string;
+            /** Format: date-time */
+            openedAt?: string;
+            /** Format: date-time */
+            closedAt?: string;
+            disposition?: string;
+            statusHistory?: components["schemas"]["VisitStatusHistoryView"][];
+            queueEntries?: components["schemas"]["QueueEntryView"][];
+        };
+        VisitStatusHistoryView: {
+            fromStatus?: string;
+            toStatus?: string;
+            /** Format: date-time */
+            changedAt?: string;
+            /** Format: uuid */
+            changedBy?: string;
+            reason?: string;
+        };
+        VisitChartView: {
+            /** Format: uuid */
+            visitId?: string;
+            visitNumber?: string;
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            patientName?: string;
+            visitType?: string;
+            visitStatus?: string;
+            /** Format: uuid */
+            currentUnitId?: string;
+            /** Format: uuid */
+            attendingStaffId?: string;
+            /** Format: date-time */
+            openedAt?: string;
+            /** Format: date-time */
+            closedAt?: string;
+            disposition?: string;
+            triageAssessments?: components["schemas"]["TriageView"][];
+            clinicalNotes?: components["schemas"]["NoteView"][];
+            diagnoses?: components["schemas"]["DiagnosisView"][];
         };
         PagedResponseStaffSummaryView: {
             content?: components["schemas"]["StaffSummaryView"][];
@@ -1628,6 +2546,73 @@ export interface components {
             totalPages?: number;
             first?: boolean;
             last?: boolean;
+        };
+        QueueBoardView: {
+            /** Format: uuid */
+            unitId?: string;
+            unitName?: string;
+            /** Format: date-time */
+            generatedAt?: string;
+            entries?: components["schemas"]["QueueEntryView"][];
+        };
+        AddressView: {
+            line1?: string;
+            line2?: string;
+            city?: string;
+            state?: string;
+            postalCode?: string;
+            country?: string;
+        };
+        ConsentView: {
+            type?: string;
+            granted?: boolean;
+            /** Format: date-time */
+            recordedAt?: string;
+        };
+        IdentifierView: {
+            type?: string;
+            value?: string;
+        };
+        NextOfKinView: {
+            name?: string;
+            relationship?: string;
+            phone?: string;
+        };
+        PatientView: {
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            firstName?: string;
+            lastName?: string;
+            maidenName?: string;
+            preferredName?: string;
+            displayName?: string;
+            sex?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            dateOfBirthEstimated?: boolean;
+            phone?: string;
+            address?: components["schemas"]["AddressView"];
+            status?: string;
+            restricted?: boolean;
+            identifiers?: components["schemas"]["IdentifierView"][];
+            nextOfKin?: components["schemas"]["NextOfKinView"][];
+            consents?: components["schemas"]["ConsentView"][];
+            /** Format: date-time */
+            registeredAt?: string;
+        };
+        PatientBannerView: {
+            /** Format: uuid */
+            patientId?: string;
+            mrn?: string;
+            displayName?: string;
+            sex?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            /** Format: int32 */
+            age?: number;
+            restricted?: boolean;
+            status?: string;
         };
         PagedResponseUserView: {
             content?: components["schemas"]["UserView"][];
@@ -1947,6 +2932,35 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    amend: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AmendTriageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageView"];
+                };
+            };
+        };
+    };
     get: {
         parameters: {
             query: {
@@ -1995,6 +3009,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    saveDraft: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveNoteDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteView"];
+                };
             };
         };
     };
@@ -2141,6 +3184,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    change: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeDiagnosisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisView"];
+                };
             };
         };
     };
@@ -2292,6 +3364,253 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                day?: string;
+                status?: "REGISTERED" | "WAITING_TRIAGE" | "IN_TRIAGE" | "WAITING_CONSULTATION" | "IN_CONSULTATION" | "AWAITING_SERVICES" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "LEFT_WITHOUT_BEING_SEEN";
+                unitId?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponseVisitSummaryView"];
+                };
+            };
+        };
+    };
+    open: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenVisitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenVisitResult"];
+                };
+            };
+        };
+    };
+    record: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordTriageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageView"];
+                };
+            };
+        };
+    };
+    assignQueue: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueueVisitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitQueueResult"];
+                };
+            };
+        };
+    };
+    overridePriority: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverridePriorityRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    record_1: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordDiagnosisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisView"];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteView"];
+                };
+            };
+        };
+    };
+    close: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseVisitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelVisitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     search: {
         parameters: {
             query: {
@@ -2343,6 +3662,33 @@ export interface operations {
                         [key: string]: string;
                     };
                 };
+            };
+        };
+    };
+    unlinkUser: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnlinkUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2454,6 +3800,33 @@ export interface operations {
             };
         };
     };
+    endPosting: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EndPostingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     deactivate: {
         parameters: {
             query: {
@@ -2500,6 +3873,226 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    callNext: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallNextResult"];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterPatientRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    search_1: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatientSearchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponsePatientSearchResult"];
+                };
+            };
+        };
+    };
+    quickRegister: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuickRegisterPatientRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    duplicateCheck: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientDuplicateView"][];
+                };
+            };
+        };
+    };
+    markEnteredInError: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoidNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteView"];
+                };
+            };
+        };
+    };
+    sign: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteView"];
+                };
+            };
+        };
+    };
+    amend_1: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AmendNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteView"];
+                };
             };
         };
     };
@@ -2972,7 +4565,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
@@ -2994,7 +4587,7 @@ export interface operations {
             };
         };
     };
-    register: {
+    register_1: {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
@@ -3187,6 +4780,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    remove: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                principal: components["schemas"]["AuthenticatedPrincipal"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveDiagnosisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisView"];
+                };
             };
         };
     };
@@ -3468,6 +5090,54 @@ export interface operations {
             };
         };
     };
+    get_1: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitDetailView"];
+                };
+            };
+        };
+    };
+    chart: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitChartView"];
+                };
+            };
+        };
+    };
     expiring: {
         parameters: {
             query: {
@@ -3532,7 +5202,7 @@ export interface operations {
             };
         };
     };
-    search_1: {
+    search_2: {
         parameters: {
             query?: {
                 q?: string;
@@ -3559,7 +5229,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -3582,7 +5252,105 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    queueBoard: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueBoardView"];
+                };
+            };
+        };
+    };
+    get_3: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientView"];
+                };
+            };
+        };
+    };
+    patientHistory: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponseVisitSummaryView"];
+                };
+            };
+        };
+    };
+    banner: {
+        parameters: {
+            query: {
+                facilityId: components["schemas"]["FacilityId"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientBannerView"];
+                };
+            };
+        };
+    };
+    list_2: {
         parameters: {
             query: {
                 facilityId: components["schemas"]["FacilityId"];
@@ -3606,7 +5374,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_4: {
         parameters: {
             query: {
                 facilityId: components["schemas"]["FacilityId"];
@@ -3748,7 +5516,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
@@ -3840,7 +5608,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_5: {
         parameters: {
             query: {
                 principal: components["schemas"]["AuthenticatedPrincipal"];
@@ -4032,7 +5800,7 @@ export interface operations {
             };
         };
     };
-    search_2: {
+    search_3: {
         parameters: {
             query: {
                 facilityId: components["schemas"]["FacilityId"];
